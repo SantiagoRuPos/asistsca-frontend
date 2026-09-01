@@ -1,0 +1,417 @@
+<div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+  <div class="flex items-center gap-3">
+    <span class="w-12 h-12 rounded-xl bg-brand-teal text-white flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      </svg>
+    </span>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Configuración</h1>
+      <p class="text-sm text-gray-500">Administra los dispositivos y configuraciones del sistema.</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <span class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-500" title="Fecha de hoy">
+      <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+      </svg>
+      {{ hoyFormateado }}
+    </span>
+
+    <div class="relative" (click)="$event.stopPropagation()">
+      <button type="button" (click)="alternarDropdownUsuario($event)" class="flex items-center gap-2 px-2 py-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-50">
+        <span class="w-8 h-8 rounded-full bg-brand-teal/10 text-brand-teal font-semibold flex items-center justify-center text-xs">
+          {{ inicialesUsuario() }}
+        </span>
+        <span class="text-left pr-1">
+          <p class="text-sm font-medium text-gray-800 leading-tight">{{ nombreMostrado() }}</p>
+          <p class="text-xs text-gray-400 leading-tight">{{ etiquetaRol() }}</p>
+        </span>
+        <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      @if (dropdownUsuarioAbierto()) {
+        <div class="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg border border-gray-100 shadow-lg z-10 py-1">
+          <button type="button" (click)="cerrarSesion()" class="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50">
+            Cerrar sesión
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Lectores + Registrar lector -->
+<div class="grid lg:grid-cols-[1fr_360px] gap-6 mb-6">
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+    <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <div>
+        <h2 class="font-semibold text-gray-800">Lectores registrados</h2>
+        <p class="text-sm text-gray-500">Gestiona los lectores NFC del sistema.</p>
+      </div>
+    </div>
+
+    @if (errorLectores()) {
+      <p class="text-sm text-red-500 px-5 py-3">{{ errorLectores() }}</p>
+    }
+
+    @if (cargandoLectores()) {
+      <p class="text-sm text-gray-400 py-8 text-center">Cargando lectores...</p>
+    } @else if (lectoresMostrados().length === 0) {
+      <p class="text-sm text-gray-400 py-8 text-center">
+        {{ mostrarInactivos() ? 'No hay lectores registrados.' : 'No hay lectores activos.' }}
+      </p>
+    } @else {
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-gray-400 text-xs uppercase tracking-wide">
+              <th class="px-5 py-2.5 font-medium">Lector</th>
+              <th class="px-5 py-2.5 font-medium">Código / ID</th>
+              <th class="px-5 py-2.5 font-medium">Ubicación</th>
+              <th class="px-5 py-2.5 font-medium">Estado</th>
+              <th class="px-5 py-2.5 font-medium">Última conexión</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            @for (lector of lectoresMostrados(); track lector.id) {
+              <tr>
+                <td class="px-5 py-3">
+                  <div class="flex items-center gap-3">
+                    <span class="w-9 h-9 rounded-lg bg-brand-teal/10 text-brand-teal flex items-center justify-center shrink-0">
+                      <svg class="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
+                      </svg>
+                    </span>
+                    <div>
+                      <p class="text-gray-800 font-medium">{{ lector.nombre ?? lector.codigoLector }}</p>
+                      @if (lector.descripcion) {
+                        <p class="text-xs text-gray-400">{{ lector.descripcion }}</p>
+                      }
+                    </div>
+                  </div>
+                </td>
+                <td class="px-5 py-3 text-gray-600">{{ lector.codigoLector }}</td>
+                <td class="px-5 py-3 text-gray-600">{{ lector.descripcionUbicacion ?? '—' }}</td>
+                <td class="px-5 py-3">
+                  @if (lector.estado.codigo === 'activo') {
+                    <span class="inline-flex items-center gap-1.5 text-green-600 text-xs font-medium">
+                      <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Activo
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1.5 text-red-500 text-xs font-medium">
+                      <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Inactivo
+                    </span>
+                  }
+                </td>
+                <td class="px-5 py-3 text-gray-600">{{ formatearFechaHora(lector.ultimaConexion) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (lectoresInactivos().length > 0) {
+        <div class="px-5 py-3 border-t border-gray-100">
+          <button type="button" (click)="alternarInactivos()" class="text-sm text-brand-teal font-medium inline-flex items-center gap-1">
+            {{ mostrarInactivos() ? 'Ocultar lectores inactivos' : 'Ver lectores inactivos (' + lectoresInactivos().length + ')' }}
+            <svg class="w-4 h-4 transition-transform" [class.rotate-180]="mostrarInactivos()" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 h-fit">
+    <h2 class="font-semibold text-gray-800">Registrar nuevo lector</h2>
+    <p class="text-sm text-gray-500 mb-4">Agrega un nuevo lector NFC al sistema.</p>
+
+    @if (errorLector()) {
+      <p class="text-sm text-red-500 mb-3">{{ errorLector() }}</p>
+    }
+
+    <form [formGroup]="formularioLector" (ngSubmit)="guardarLector()" class="space-y-4">
+      <div>
+        <label class="block text-sm text-gray-600 mb-1.5">Nombre del lector</label>
+        <input type="text" formControlName="nombre" placeholder="Ej: Puerta Principal" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+      </div>
+
+      <div>
+        <label class="block text-sm text-gray-600 mb-1.5">Código / ID del lector</label>
+        <input type="text" formControlName="codigoLector" placeholder="Escanea o ingresa el ID" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+      </div>
+
+      <div>
+        <label class="block text-sm text-gray-600 mb-1.5">Ubicación</label>
+        <input type="text" formControlName="descripcionUbicacion" placeholder="Ej: Entrada Principal" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+      </div>
+
+      <div>
+        <label class="block text-sm text-gray-600 mb-1.5">Descripción (opcional)</label>
+        <textarea formControlName="descripcion" rows="2" placeholder="Información adicional del lector" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm resize-none"></textarea>
+      </div>
+
+      <button
+        type="submit"
+        [disabled]="guardandoLector()"
+        class="w-full px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium disabled:opacity-50"
+      >
+        {{ guardandoLector() ? 'Guardando...' : 'Guardar lector' }}
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- WhatsApp + Telegram -->
+<div class="grid md:grid-cols-2 gap-6 mb-6">
+  <div class="bg-white rounded-xl border border-gray-100 p-6">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="w-11 h-11 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+        <svg class="w-5.5 h-5.5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12.01 2C6.48 2 2 6.48 2 12c0 1.85.5 3.58 1.38 5.07L2 22l5.07-1.33A9.96 9.96 0 0 0 12.01 22C17.53 22 22 17.52 22 12S17.53 2 12.01 2Zm0 18.06c-1.66 0-3.2-.48-4.5-1.31l-.32-.19-3.01.79.8-2.93-.21-.3A8.03 8.03 0 0 1 3.96 12c0-4.43 3.61-8.04 8.05-8.04S20.05 7.57 20.05 12s-3.61 8.06-8.04 8.06Zm4.4-6.02c-.24-.12-1.43-.7-1.65-.79-.22-.08-.38-.12-.54.12-.16.24-.62.79-.76.95-.14.16-.28.18-.52.06-.24-.12-1.01-.37-1.92-1.18-.71-.63-1.19-1.4-1.33-1.64-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.19-.46-.39-.4-.54-.4-.14 0-.3-.02-.46-.02-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2s.86 2.32.98 2.48c.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.43-.58 1.63-1.15.2-.56.2-1.04.14-1.15-.06-.11-.22-.17-.46-.29Z" />
+        </svg>
+      </span>
+      <div>
+        <h2 class="font-semibold text-gray-800">Configuración de WhatsApp</h2>
+        <p class="text-sm text-gray-500">Administra la conexión y ajustes de WhatsApp.</p>
+      </div>
+    </div>
+
+    @if (resultadoPruebaWhatsapp(); as resultado) {
+      <p class="text-sm mb-3" [class]="resultado.exitoso ? 'text-green-600' : 'text-red-500'">{{ resultado.mensaje }}</p>
+    }
+
+    @if (cargandoWhatsapp()) {
+      <p class="text-sm text-gray-400 py-4">Cargando configuración...</p>
+    } @else if (!configWhatsapp()) {
+      <p class="text-sm text-gray-400 py-2 mb-4">Todavía no has configurado WhatsApp Business API.</p>
+    } @else {
+      <dl class="space-y-2.5 text-sm mb-4">
+        <div class="flex items-center justify-between">
+          <dt class="text-gray-500">Estado de conexión</dt>
+          <dd class="inline-flex items-center gap-1.5 text-green-600 font-medium text-xs px-2 py-0.5 rounded-full bg-green-50">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Configurado
+          </dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-gray-500">Phone Number ID</dt>
+          <dd class="text-gray-800 font-medium">{{ configWhatsapp()!.phoneNumberId }}</dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-gray-500">API / Dispositivo</dt>
+          <dd class="text-gray-800 font-medium">WhatsApp Business API (Meta Cloud API)</dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-gray-500">Entorno</dt>
+          <dd class="text-gray-800 font-medium capitalize">{{ configWhatsapp()!.entorno }}</dd>
+        </div>
+        <div class="flex items-center justify-between">
+          <dt class="text-gray-500">Última actualización</dt>
+          <dd class="text-gray-800 font-medium">{{ formatearFechaHora(configWhatsapp()!.fechaActualizacion) }}</dd>
+        </div>
+      </dl>
+    }
+
+    <div class="flex gap-3">
+      <button
+        type="button"
+        (click)="probarWhatsapp()"
+        [disabled]="probandoWhatsapp() || !configWhatsapp()"
+        class="flex-1 px-4 py-2.5 rounded-lg border border-brand-teal text-brand-teal text-sm font-medium inline-flex items-center justify-center gap-2 disabled:opacity-50"
+      >
+        <svg class="w-4 h-4" [class.animate-spin]="probandoWhatsapp()" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+        </svg>
+        {{ probandoWhatsapp() ? 'Probando...' : 'Probar conexión' }}
+      </button>
+      <button type="button" (click)="abrirEditarWhatsapp()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium inline-flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28Z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+        </svg>
+        Editar configuración
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-6 opacity-75">
+    <div class="flex items-center gap-3 mb-4">
+      <span class="w-11 h-11 rounded-full bg-blue-50 text-blue-500 flex items-center justify-center shrink-0">
+        <svg class="w-5.5 h-5.5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M21.9 4.6c.2-1-.4-1.5-1.3-1.1L2.6 10.7c-.9.4-.9 1 0 1.3l4.5 1.4 1.7 5.3c.2.6.4.8.9.8.4 0 .6-.2.9-.5l2.2-2.1 4.4 3.3c.8.5 1.4.2 1.6-.7l3.1-14.9Z" />
+        </svg>
+      </span>
+      <div>
+        <h2 class="font-semibold text-gray-800">Configuración de Telegram</h2>
+        <p class="text-sm text-gray-500">Administra la conexión y ajustes de Telegram.</p>
+      </div>
+    </div>
+
+    <dl class="space-y-2.5 text-sm mb-4">
+      <div class="flex items-center justify-between">
+        <dt class="text-gray-500">Estado de conexión</dt>
+        <dd class="inline-flex items-center gap-1.5 text-gray-500 font-medium text-xs px-2 py-0.5 rounded-full bg-gray-100">
+          <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> No configurado
+        </dd>
+      </div>
+      <div class="flex items-center justify-between">
+        <dt class="text-gray-500">Bot</dt>
+        <dd class="text-gray-400">—</dd>
+      </div>
+      <div class="flex items-center justify-between">
+        <dt class="text-gray-500">Chat ID Admin</dt>
+        <dd class="text-gray-400">—</dd>
+      </div>
+      <div class="flex items-center justify-between">
+        <dt class="text-gray-500">Última sincronización</dt>
+        <dd class="text-gray-400">—</dd>
+      </div>
+    </dl>
+
+    <div class="flex gap-3">
+      <button
+        type="button"
+        disabled
+        title="Próximamente disponible: la integración con Telegram todavía no se ha construido"
+        class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-400 text-sm font-medium inline-flex items-center justify-center gap-2 cursor-not-allowed"
+      >
+        Probar conexión
+      </button>
+      <button
+        type="button"
+        disabled
+        title="Próximamente disponible: la integración con Telegram todavía no se ha construido"
+        class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-400 text-sm font-medium inline-flex items-center justify-center gap-2 cursor-not-allowed"
+      >
+        Editar configuración
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start gap-3">
+  <svg class="w-5 h-5 text-blue-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+  </svg>
+  <p class="text-sm text-blue-700">Asegúrate de que los lectores estén conectados a internet para un correcto funcionamiento del sistema.</p>
+</div>
+
+<!-- Modal: API key generada -->
+@if (lectorCreado(); as creado) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl max-w-md w-full p-6">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+          </svg>
+        </span>
+        <h3 class="text-lg font-bold text-gray-900">Lector registrado</h3>
+      </div>
+
+      <p class="text-sm text-gray-600 mb-3">
+        Copia esta API key y configúrala en el lector <strong>{{ creado.lector.nombre }}</strong>. Por seguridad, no se puede volver a mostrar después de cerrar esta ventana.
+      </p>
+
+      <div class="flex items-center gap-2 mb-4">
+        <code class="flex-1 px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-700 break-all">{{ creado.apiKey }}</code>
+        <button type="button" (click)="copiarApiKey()" class="px-3 py-2.5 rounded-lg border border-gray-200 text-gray-600 shrink-0" [title]="apiKeyCopiada() ? 'Copiado' : 'Copiar'">
+          @if (apiKeyCopiada()) {
+            <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          } @else {
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+            </svg>
+          }
+        </button>
+      </div>
+
+      <button type="button" (click)="cerrarApiKeyModal()" class="w-full px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium">
+        Ya la guardé, cerrar
+      </button>
+    </div>
+  </div>
+}
+
+<!-- Modal: Editar configuración WhatsApp -->
+@if (mostrarModalWhatsapp()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">Configuración de WhatsApp</h3>
+        <button type="button" (click)="cerrarEditarWhatsapp()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-xs text-gray-500 mb-4">
+        Por seguridad, el access token no se muestra una vez guardado. Tienes que volver a escribirlo cada vez que edites cualquier dato de esta configuración.
+      </p>
+
+      @if (errorModalWhatsapp()) {
+        <p class="text-sm text-red-500 mb-3">{{ errorModalWhatsapp() }}</p>
+      }
+
+      <form [formGroup]="formularioWhatsapp" (ngSubmit)="guardarWhatsapp()" class="space-y-4">
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Entorno</label>
+          <select formControlName="entorno" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+            <option value="prueba">Prueba</option>
+            <option value="produccion">Producción</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Phone Number ID</label>
+          <input type="text" formControlName="phoneNumberId" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Access Token</label>
+          <input type="password" formControlName="accessToken" placeholder="Token de acceso de Meta" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Versión de API</label>
+            <input type="text" formControlName="apiVersion" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Idioma plantilla</label>
+            <input type="text" formControlName="idiomaPlantilla" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Plantilla entrada</label>
+            <input type="text" formControlName="plantillaEntrada" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Plantilla salida</label>
+            <input type="text" formControlName="plantillaSalida" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" (click)="cerrarEditarWhatsapp()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="guardandoWhatsapp()" class="flex-1 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium disabled:opacity-50">
+            {{ guardandoWhatsapp() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

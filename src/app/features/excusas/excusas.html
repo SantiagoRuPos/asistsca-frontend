@@ -1,0 +1,508 @@
+<div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+  <div class="flex items-center gap-3">
+    <span class="w-12 h-12 rounded-xl bg-brand-teal text-white flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+      </svg>
+    </span>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Excusas</h1>
+      <p class="text-sm text-gray-500">Gestiona las excusas de los estudiantes.</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <span class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-500" title="Fecha de hoy">
+      <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+      </svg>
+      {{ hoyFormateado }}
+    </span>
+
+    <button
+      type="button"
+      (click)="abrirModalNueva()"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Nueva excusa
+    </button>
+  </div>
+</div>
+
+@if (error()) {
+  <p class="text-sm text-red-500 mb-4">{{ error() }}</p>
+}
+@if (errorAccion()) {
+  <p class="text-sm text-red-500 mb-4">{{ errorAccion() }}</p>
+}
+
+<!-- Tarjetas resumen -->
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
+        <circle cx="12" cy="12" r="9" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Pendientes</p>
+      <p class="text-2xl font-bold text-gray-900">{{ resumen()?.pendientes ?? '—' }}</p>
+      <p class="text-xs text-amber-500 mt-1">Por revisar</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Aprobadas</p>
+      <p class="text-2xl font-bold text-gray-900">{{ resumen()?.aprobadas ?? '—' }}</p>
+      <p class="text-xs text-green-600 mt-1">Este mes</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Negadas</p>
+      <p class="text-2xl font-bold text-gray-900">{{ resumen()?.negadas ?? '—' }}</p>
+      <p class="text-xs text-red-500 mt-1">Este mes</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Total</p>
+      <p class="text-2xl font-bold text-gray-900">{{ resumen()?.total ?? '—' }}</p>
+      <p class="text-xs text-blue-600 mt-1">Este mes</p>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="bg-white rounded-xl border border-gray-100 p-5 mb-6">
+  <div class="grid md:grid-cols-5 gap-4 items-end">
+    <div class="md:col-span-2">
+      <label class="block text-sm text-gray-500 mb-1.5">Buscar estudiante</label>
+      <div class="relative">
+        <input
+          type="text"
+          placeholder="Nombre, apellido o documento..."
+          [value]="busquedaInput()"
+          (input)="actualizarBusqueda($any($event.target).value)"
+          class="w-full pl-3 pr-9 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+        />
+        <svg class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm text-gray-500 mb-1.5">Estado</label>
+      <select
+        [value]="estadoInput()"
+        (change)="actualizarEstado($any($event.target).value)"
+        class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+      >
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendiente</option>
+        <option value="aprobada">Aprobada</option>
+        <option value="rechazada">Negada</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm text-gray-500 mb-1.5">Curso</label>
+      <select
+        [value]="cursoIdInput()"
+        (change)="actualizarCurso($any($event.target).value)"
+        class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+      >
+        <option value="">Todos los cursos</option>
+        @for (curso of cursos(); track curso.id) {
+          <option [value]="curso.id">{{ curso.nombre }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm text-gray-500 mb-1.5">Fecha de la falta</label>
+      <div class="flex items-center gap-1.5">
+        <input
+          type="date"
+          [value]="fechaInicioInput()"
+          (change)="actualizarFechaInicio($any($event.target).value)"
+          class="w-full px-2 py-2.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+        />
+        <span class="text-gray-400 text-xs">–</span>
+        <input
+          type="date"
+          [value]="fechaFinInput()"
+          (change)="actualizarFechaFin($any($event.target).value)"
+          class="w-full px-2 py-2.5 rounded-lg border border-gray-200 text-xs focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <button
+      type="button"
+      (click)="limpiarFiltros()"
+      class="flex items-center gap-2 px-4 py-2 rounded-lg border border-brand-teal text-brand-teal text-sm font-medium hover:bg-brand-teal/5"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+      </svg>
+      Limpiar filtros
+    </button>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+  <div class="px-5 py-4 border-b border-gray-100">
+    <h2 class="font-semibold text-gray-800">Solicitudes de excusas</h2>
+  </div>
+
+  @if (cargandoLista()) {
+    <p class="text-sm text-gray-400 py-8 text-center">Cargando excusas...</p>
+  } @else if (!lista() || lista()!.datos.length === 0) {
+    <p class="text-sm text-gray-400 py-8 text-center">No hay excusas registradas con estos filtros.</p>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-400 text-xs uppercase tracking-wide">
+            <th class="px-5 py-2.5 font-medium">Estudiante</th>
+            <th class="px-5 py-2.5 font-medium">Curso</th>
+            <th class="px-5 py-2.5 font-medium">Fecha de la falta</th>
+            <th class="px-5 py-2.5 font-medium">Motivo</th>
+            <th class="px-5 py-2.5 font-medium">Estado</th>
+            <th class="px-5 py-2.5 font-medium">Solicitada el</th>
+            <th class="px-5 py-2.5 font-medium text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (excusa of lista()!.datos; track excusa.id) {
+            <tr>
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <span class="w-9 h-9 rounded-full bg-brand-teal/10 text-brand-teal font-semibold flex items-center justify-center text-xs shrink-0">
+                    {{ iniciales(excusa.estudiante.nombres, excusa.estudiante.apellidos) }}
+                  </span>
+                  <div>
+                    <p class="text-gray-800 font-medium">{{ excusa.estudiante.nombres }} {{ excusa.estudiante.apellidos }}</p>
+                    <p class="text-xs text-gray-400">{{ excusa.estudiante.tipoDocumento }} {{ excusa.estudiante.numeroDocumento }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-5 py-3 text-gray-600">{{ excusa.curso?.nombre ?? '—' }}</td>
+              <td class="px-5 py-3 text-gray-600">
+                <p>{{ formatearFecha(excusa.fechaAusencia).fecha }}</p>
+                <p class="text-xs text-gray-400 capitalize">{{ formatearFecha(excusa.fechaAusencia).dia }}</p>
+              </td>
+              <td class="px-5 py-3 text-gray-600">
+                <p>{{ excusa.motivo }}</p>
+                @if (excusa.archivoSoporteNombre) {
+                  <button
+                    type="button"
+                    (click)="verAdjunto(excusa)"
+                    [disabled]="descargandoAdjunto() === excusa.id"
+                    class="text-xs text-brand-teal font-medium inline-flex items-center gap-1 mt-0.5 hover:underline disabled:opacity-50"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+                    </svg>
+                    {{ descargandoAdjunto() === excusa.id ? 'Abriendo...' : 'Adjunto: ' + excusa.archivoSoporteNombre }}
+                  </button>
+                }
+              </td>
+              <td class="px-5 py-3">
+                <span class="px-2.5 py-1 rounded-lg text-xs font-medium inline-flex items-center gap-1" [class]="claseEstado(excusa.estado.codigo)">
+                  {{ etiquetaEstado(excusa.estado.codigo) }}
+                </span>
+              </td>
+              <td class="px-5 py-3 text-gray-600">
+                <p>{{ formatearFechaHora(excusa.fechaRegistro).fecha }}</p>
+                <p class="text-xs text-gray-400">{{ formatearFechaHora(excusa.fechaRegistro).hora }}</p>
+              </td>
+              <td class="px-5 py-3 text-right">
+                <div class="relative inline-flex" (click)="$event.stopPropagation()">
+                  <button
+                    type="button"
+                    (click)="abrirDetalle(excusa)"
+                    class="px-3 py-1.5 rounded-l-lg border border-gray-200 text-xs font-medium text-gray-600 inline-flex items-center gap-1.5 hover:bg-gray-50"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                    Ver detalle
+                  </button>
+                  <button
+                    type="button"
+                    (click)="alternarDropdown(excusa.id, $event)"
+                    class="px-2 py-1.5 rounded-r-lg border border-l-0 border-gray-200 text-gray-500 hover:bg-gray-50"
+                  >
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+
+                  @if (dropdownAbierto() === excusa.id) {
+                    <div class="absolute right-0 top-full mt-1 w-40 bg-white rounded-lg border border-gray-100 shadow-lg z-10 py-1 text-left">
+                      @if (puedeDecidir() && excusa.estado.codigo === 'pendiente') {
+                        <button
+                          type="button"
+                          (click)="aprobar(excusa.id)"
+                          [disabled]="accionEnCurso() === excusa.id"
+                          class="w-full text-left px-3 py-2 text-xs text-green-600 hover:bg-green-50 disabled:opacity-50"
+                        >
+                          Aprobar
+                        </button>
+                        <button
+                          type="button"
+                          (click)="rechazar(excusa.id)"
+                          [disabled]="accionEnCurso() === excusa.id"
+                          class="w-full text-left px-3 py-2 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          Negar
+                        </button>
+                      } @else {
+                        <p class="px-3 py-2 text-xs text-gray-400">Sin acciones disponibles</p>
+                      }
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between px-5 py-4 border-t border-gray-100">
+      <p class="text-sm text-gray-500">Mostrando {{ rangoMostrado() }} solicitudes</p>
+      <div class="flex items-center gap-1.5">
+        <button type="button" (click)="paginaAnterior()" [disabled]="pagina() <= 1" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        @for (p of paginasVisibles(); track $index) {
+          @if (p === '...') {
+            <span class="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">...</span>
+          } @else {
+            <button
+              type="button"
+              (click)="irAPagina(p)"
+              [class]="p === pagina() ? 'bg-brand-teal text-white' : 'text-gray-600 border border-gray-200 hover:bg-gray-50'"
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+            >
+              {{ p }}
+            </button>
+          }
+        }
+        <button type="button" (click)="paginaSiguiente()" [disabled]="pagina() >= (lista()?.totalPaginas ?? 1)" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Modal: Ver detalle -->
+@if (excusaDetalle(); as excusa) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" (click)="cerrarDetalle()">
+    <div class="bg-white rounded-xl max-w-md w-full p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-start justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">Detalle de la excusa</h3>
+        <button type="button" (click)="cerrarDetalle()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <dl class="space-y-3 text-sm">
+        <div>
+          <dt class="text-gray-400">Estudiante</dt>
+          <dd class="text-gray-800 font-medium">{{ excusa.estudiante.nombres }} {{ excusa.estudiante.apellidos }} · {{ excusa.estudiante.tipoDocumento }} {{ excusa.estudiante.numeroDocumento }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-400">Curso</dt>
+          <dd class="text-gray-800">{{ excusa.curso?.nombre ?? '—' }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-400">Fecha de la falta</dt>
+          <dd class="text-gray-800">{{ formatearFecha(excusa.fechaAusencia).fecha }} ({{ formatearFecha(excusa.fechaAusencia).dia }})</dd>
+        </div>
+        <div>
+          <dt class="text-gray-400">Tipo de excusa</dt>
+          <dd class="text-gray-800">{{ excusa.tipoExcusa }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-400">Motivo</dt>
+          <dd class="text-gray-800">{{ excusa.motivo }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-400">Estado</dt>
+          <dd>
+            <span class="px-2.5 py-1 rounded-lg text-xs font-medium" [class]="claseEstado(excusa.estado.codigo)">
+              {{ etiquetaEstado(excusa.estado.codigo) }}
+            </span>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-gray-400">Solicitada el</dt>
+          <dd class="text-gray-800">{{ formatearFechaHora(excusa.fechaRegistro).fecha }}, {{ formatearFechaHora(excusa.fechaRegistro).hora }}</dd>
+        </div>
+        @if (excusa.archivoSoporteNombre) {
+          <div>
+            <dt class="text-gray-400">Adjunto</dt>
+            <dd>
+              <button type="button" (click)="verAdjunto(excusa)" class="text-brand-teal font-medium hover:underline text-sm">
+                {{ excusa.archivoSoporteNombre }}
+              </button>
+            </dd>
+          </div>
+        }
+      </dl>
+
+      @if (puedeDecidir() && excusa.estado.codigo === 'pendiente') {
+        <div class="flex gap-3 mt-6">
+          <button
+            type="button"
+            (click)="aprobar(excusa.id); cerrarDetalle()"
+            class="flex-1 px-4 py-2.5 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700"
+          >
+            Aprobar
+          </button>
+          <button
+            type="button"
+            (click)="rechazar(excusa.id); cerrarDetalle()"
+            class="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600"
+          >
+            Negar
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
+<!-- Modal: Nueva excusa -->
+@if (mostrarModalNueva()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">Nueva excusa</h3>
+        <button type="button" (click)="cerrarModalNueva()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      @if (errorModal()) {
+        <p class="text-sm text-red-500 mb-3">{{ errorModal() }}</p>
+      }
+
+      <form [formGroup]="formularioExcusa" (ngSubmit)="guardarExcusa()" class="space-y-4">
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Estudiante</label>
+          <select formControlName="estudianteId" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+            <option value="" disabled>Selecciona un estudiante</option>
+            @for (estudiante of estudiantes(); track estudiante.id) {
+              <option [value]="estudiante.id">
+                {{ estudiante.nombres }} {{ estudiante.apellidos }} · {{ estudiante.numeroDocumento }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Fecha de la falta</label>
+          <input type="date" formControlName="fechaAusencia" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Tipo de excusa</label>
+          <select formControlName="tipoExcusa" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+            <option value="" disabled>Selecciona un tipo</option>
+            @for (tipo of tiposExcusa; track tipo) {
+              <option [value]="tipo">{{ tipo }}</option>
+            }
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Motivo / detalle</label>
+          <textarea
+            formControlName="motivo"
+            rows="3"
+            placeholder="Describe brevemente el motivo de la ausencia..."
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm resize-none"
+          ></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Soporte (opcional, PDF/JPG/PNG hasta 5 MB)</label>
+          @if (errorArchivo()) {
+            <p class="text-xs text-red-500 mb-1.5">{{ errorArchivo() }}</p>
+          }
+          @if (archivoSubido(); as adjunto) {
+            <div class="flex items-center justify-between px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+              <span class="text-gray-700 truncate">{{ adjunto.nombre }}</span>
+              <button type="button" (click)="quitarArchivo()" class="text-red-500 text-xs font-medium">Quitar</button>
+            </div>
+          } @else {
+            <input
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              (change)="seleccionarArchivo($event)"
+              [disabled]="archivoSubiendo()"
+              class="w-full text-sm text-gray-600 file:mr-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-brand-teal/10 file:text-brand-teal file:text-sm"
+            />
+            @if (archivoSubiendo()) {
+              <p class="text-xs text-gray-400 mt-1">Subiendo archivo...</p>
+            }
+          }
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" (click)="cerrarModalNueva()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="guardandoExcusa() || archivoSubiendo()"
+            class="flex-1 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium disabled:opacity-50"
+          >
+            {{ guardandoExcusa() ? 'Guardando...' : 'Registrar excusa' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

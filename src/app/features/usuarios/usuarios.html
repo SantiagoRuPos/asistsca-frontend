@@ -1,0 +1,401 @@
+<div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+  <div class="flex items-center gap-3">
+    <span class="w-12 h-12 rounded-xl bg-brand-teal text-white flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+      </svg>
+    </span>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Usuarios</h1>
+      <p class="text-sm text-gray-500">Administra las cuentas de profesores, rectores, coordinadores y administradores.</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-3">
+    <span class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-gray-200 bg-white text-sm text-gray-500" title="Fecha de hoy">
+      <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+      </svg>
+      {{ hoyFormateado }}
+    </span>
+
+    <button
+      type="button"
+      (click)="abrirModalNuevo()"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Nuevo usuario
+    </button>
+  </div>
+</div>
+
+@if (error()) {
+  <p class="text-sm text-red-500 mb-4">{{ error() }}</p>
+}
+@if (errorAccion()) {
+  <p class="text-sm text-red-500 mb-4">{{ errorAccion() }}</p>
+}
+
+<!-- Tarjetas resumen -->
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.24-.438.613-.43.99a7.72 7.72 0 0 1 0 .255c-.008.379.137.751.43.992l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281a1.125 1.125 0 0 0-.644-.87 6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a7.72 7.72 0 0 1 0-.255c.007-.379-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281Z" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Administradores</p>
+      <p class="text-2xl font-bold text-gray-900">{{ resumen()?.administradores ?? '—' }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Rectores</p>
+      <p class="text-2xl font-bold text-gray-900">{{ resumen()?.rectores ?? '—' }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M11.35 3.836c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4c.414 0 .75-.336.75-.75 0-.231-.035-.454-.1-.664M8.75 21v-4.286c0-.62-.504-1.125-1.125-1.125h-.25A2.375 2.375 0 0 0 5 17.964V21m3.75 0h6.5m-6.5 0h-1.5m8-0V17.964a2.375 2.375 0 0 0-2.375-2.375h-.25c-.621 0-1.125.504-1.125 1.125V21m0 0h1.5" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v3.75m-3.75 4.5h7.5m-7.5 0a2.25 2.25 0 0 1-2.25-2.25V6.75A2.25 2.25 0 0 1 8.25 4.5h7.5a2.25 2.25 0 0 1 2.25 2.25V9a2.25 2.25 0 0 1-2.25 2.25m-7.5 0h7.5" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Coordinadores</p>
+      <p class="text-2xl font-bold text-gray-900">{{ resumen()?.coordinadores ?? '—' }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Profesores</p>
+      <p class="text-2xl font-bold text-gray-900">{{ resumen()?.profesores ?? '—' }}</p>
+      <p class="text-xs text-gray-400 mt-1">Se crean desde Cursos</p>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="bg-white rounded-xl border border-gray-100 p-5 mb-6">
+  <div class="grid md:grid-cols-4 gap-4 items-end">
+    <div class="md:col-span-2">
+      <label class="block text-sm text-gray-500 mb-1.5">Buscar usuario</label>
+      <div class="relative">
+        <input
+          type="text"
+          placeholder="Nombre o correo..."
+          [value]="busquedaInput()"
+          (input)="actualizarBusqueda($any($event.target).value)"
+          class="w-full pl-3 pr-9 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+        />
+        <svg class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm text-gray-500 mb-1.5">Rol</label>
+      <select
+        [value]="rolInput()"
+        (change)="actualizarRol($any($event.target).value)"
+        class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+      >
+        <option value="">Todos los roles</option>
+        <option value="admin">Administrador</option>
+        <option value="rector">Rector</option>
+        <option value="coordinador">Coordinador</option>
+        <option value="profesor">Profesor</option>
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-sm text-gray-500 mb-1.5">Estado</label>
+      <select
+        [value]="estadoInput()"
+        (change)="actualizarEstado($any($event.target).value)"
+        class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+      >
+        <option value="">Todos los estados</option>
+        <option value="activo">Activo</option>
+        <option value="inactivo">Inactivo</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <button
+      type="button"
+      (click)="limpiarFiltros()"
+      class="flex items-center gap-2 px-4 py-2 rounded-lg border border-brand-teal text-brand-teal text-sm font-medium hover:bg-brand-teal/5"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+      </svg>
+      Limpiar filtros
+    </button>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+  <div class="px-5 py-4 border-b border-gray-100">
+    <h2 class="font-semibold text-gray-800">Cuentas del panel</h2>
+  </div>
+
+  @if (cargandoLista()) {
+    <p class="text-sm text-gray-400 py-8 text-center">Cargando usuarios...</p>
+  } @else if (!lista() || lista()!.datos.length === 0) {
+    <p class="text-sm text-gray-400 py-8 text-center">No hay usuarios registrados con estos filtros.</p>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-400 text-xs uppercase tracking-wide">
+            <th class="px-5 py-2.5 font-medium">Usuario</th>
+            <th class="px-5 py-2.5 font-medium">Correo</th>
+            <th class="px-5 py-2.5 font-medium">Teléfono</th>
+            <th class="px-5 py-2.5 font-medium">Rol</th>
+            <th class="px-5 py-2.5 font-medium">Estado</th>
+            <th class="px-5 py-2.5 font-medium">Último acceso</th>
+            <th class="px-5 py-2.5 font-medium text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (usuario of lista()!.datos; track usuario.id) {
+            <tr>
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <span class="w-9 h-9 rounded-full bg-brand-teal/10 text-brand-teal font-semibold flex items-center justify-center text-xs shrink-0">
+                    {{ iniciales(usuario.nombreCompleto) }}
+                  </span>
+                  <div>
+                    <p class="text-gray-800 font-medium">{{ usuario.nombreCompleto }}</p>
+                    @if (usuario.id === miUsuarioId()) {
+                      <p class="text-xs text-gray-400">Tu cuenta</p>
+                    }
+                  </div>
+                </div>
+              </td>
+              <td class="px-5 py-3 text-gray-600">{{ usuario.email }}</td>
+              <td class="px-5 py-3 text-gray-600">{{ usuario.telefono ?? '—' }}</td>
+              <td class="px-5 py-3 text-gray-600">{{ etiquetaRol(usuario.rol.nombre) }}</td>
+              <td class="px-5 py-3">
+                <span class="px-2.5 py-1 rounded-lg text-xs font-medium" [class]="claseEstado(usuario.estado.codigo)">
+                  {{ etiquetaEstado(usuario.estado.codigo) }}
+                </span>
+              </td>
+              <td class="px-5 py-3 text-gray-600">{{ formatearFechaHora(usuario.ultimoLogin) }}</td>
+              <td class="px-5 py-3 text-right">
+                <div class="relative inline-flex" (click)="$event.stopPropagation()">
+                  <button
+                    type="button"
+                    (click)="alternarDropdown(usuario.id, $event)"
+                    class="px-3 py-1.5 rounded-lg border border-gray-200 text-gray-500 hover:bg-gray-50 inline-flex items-center gap-1.5 text-xs font-medium"
+                  >
+                    Acciones
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+
+                  @if (dropdownAbierto() === usuario.id) {
+                    <div class="absolute right-0 top-full mt-1 w-44 bg-white rounded-lg border border-gray-100 shadow-lg z-10 py-1 text-left">
+                      @if (usuario.id === miUsuarioId()) {
+                        <p class="px-3 py-2 text-xs text-gray-400">No puedes desactivar tu propia cuenta</p>
+                      } @else if (usuario.estado.codigo === 'activo') {
+                        <button
+                          type="button"
+                          (click)="desactivar(usuario)"
+                          [disabled]="accionEnCurso() === usuario.id"
+                          class="w-full text-left px-3 py-2 text-xs text-red-500 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          Desactivar
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          (click)="activar(usuario)"
+                          [disabled]="accionEnCurso() === usuario.id"
+                          class="w-full text-left px-3 py-2 text-xs text-green-600 hover:bg-green-50 disabled:opacity-50"
+                        >
+                          Activar
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between px-5 py-4 border-t border-gray-100">
+      <p class="text-sm text-gray-500">Mostrando {{ rangoMostrado() }} usuarios</p>
+      <div class="flex items-center gap-1.5">
+        <button type="button" (click)="paginaAnterior()" [disabled]="pagina() <= 1" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        @for (p of paginasVisibles(); track $index) {
+          @if (p === '...') {
+            <span class="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">...</span>
+          } @else {
+            <button
+              type="button"
+              (click)="irAPagina(p)"
+              [class]="p === pagina() ? 'bg-brand-teal text-white' : 'text-gray-600 border border-gray-200 hover:bg-gray-50'"
+              class="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+            >
+              {{ p }}
+            </button>
+          }
+        }
+        <button type="button" (click)="paginaSiguiente()" [disabled]="pagina() >= (lista()?.totalPaginas ?? 1)" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Modal: Nuevo usuario -->
+@if (mostrarModalNuevo()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between mb-4">
+        <h3 class="text-lg font-bold text-gray-900">Nuevo usuario</h3>
+        <button type="button" (click)="cerrarModalNuevo()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-sm text-gray-500 mb-4">
+        La contraseña se genera automáticamente y se envía al correo del usuario. Para registrar un profesor, hazlo desde Cursos, ya que ahí se completan sus datos académicos.
+      </p>
+
+      @if (errorModal()) {
+        <p class="text-sm text-red-500 mb-3">{{ errorModal() }}</p>
+      }
+
+      <form [formGroup]="formularioUsuario" (ngSubmit)="guardarUsuario()" class="space-y-4">
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Nombre completo</label>
+          <input
+            type="text"
+            formControlName="nombreCompleto"
+            placeholder="Nombre y apellidos"
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Correo</label>
+          <input
+            type="email"
+            formControlName="email"
+            placeholder="correo@colegio.edu.co"
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Teléfono (opcional)</label>
+          <input
+            type="text"
+            formControlName="telefono"
+            placeholder="300 123 4567"
+            class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm"
+          />
+        </div>
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Rol</label>
+          <select formControlName="rol" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+            @for (rol of rolesRegistrables; track rol.valor) {
+              <option [value]="rol.valor">{{ rol.etiqueta }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button type="button" (click)="cerrarModalNuevo()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium">
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="guardandoUsuario()"
+            class="flex-1 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium disabled:opacity-50"
+          >
+            {{ guardandoUsuario() ? 'Registrando...' : 'Registrar usuario' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal: contraseña temporal (solo si el correo no se pudo enviar) -->
+@if (usuarioRegistrado(); as registrado) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl max-w-md w-full p-6">
+      <div class="flex items-center gap-3 mb-3">
+        <span class="w-10 h-10 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v.008H12v-.008ZM21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </span>
+        <h3 class="text-lg font-bold text-gray-900">Usuario creado</h3>
+      </div>
+
+      <p class="text-sm text-gray-600 mb-3">
+        No se pudo enviar el correo de bienvenida a <strong>{{ registrado.usuario.email }}</strong>{{ registrado.motivoFalloEnvio ? ' (' + registrado.motivoFalloEnvio + ')' : '' }}.
+        Copia esta contraseña temporal y compártela manualmente. Por seguridad, no se puede volver a mostrar después de cerrar esta ventana.
+      </p>
+
+      <div class="flex items-center gap-2 mb-4">
+        <code class="flex-1 px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200 text-xs text-gray-700 break-all">{{ registrado.passwordTemporal }}</code>
+        <button type="button" (click)="copiarPassword()" class="px-3 py-2.5 rounded-lg border border-gray-200 text-gray-600 shrink-0" [title]="passwordCopiada() ? 'Copiado' : 'Copiar'">
+          @if (passwordCopiada()) {
+            <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+            </svg>
+          } @else {
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+            </svg>
+          }
+        </button>
+      </div>
+
+      <button type="button" (click)="cerrarModalPassword()" class="w-full px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium">
+        Ya la copié, cerrar
+      </button>
+    </div>
+  </div>
+}

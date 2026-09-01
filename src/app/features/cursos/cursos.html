@@ -1,0 +1,254 @@
+<div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+  <div class="flex items-center gap-3">
+    <span class="w-11 h-11 rounded-xl bg-brand-teal/10 text-brand-teal flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443" />
+      </svg>
+    </span>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Cursos</h1>
+      <p class="text-sm text-gray-500">Gestiona los cursos y su información.</p>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    title="Próximamente disponible: falta el listado de profesores para elegir director de curso"
+    class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium opacity-60 cursor-not-allowed"
+  >
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+    Nuevo curso
+  </button>
+</div>
+
+@if (error()) {
+  <p class="text-sm text-red-500 mb-4">{{ error() }}</p>
+}
+
+<!-- Tarjetas resumen -->
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-teal-50 text-brand-teal flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Total cursos</p>
+      <p class="text-2xl font-bold text-gray-900">{{ cursos().length }}</p>
+      <p class="text-xs text-gray-400 mt-1">Cursos registrados</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-indigo-50 text-indigo-500 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Estudiantes</p>
+      <p class="text-2xl font-bold text-gray-900">{{ totalEstudiantes() }}</p>
+      <p class="text-xs text-gray-400 mt-1">Total en todos los cursos</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Cursos activos</p>
+      <p class="text-2xl font-bold text-gray-900">{{ totalActivos() }}</p>
+      <p class="text-xs text-green-600 mt-1">{{ porcentajeActivos() }}% del total</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
+    <span class="w-12 h-12 rounded-full bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5v-.75A2.25 2.25 0 0 0 18 4.5H6a2.25 2.25 0 0 0-2.25 2.25v.75m16.5 0v10.5A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V7.5m16.5 0h-16.5" />
+      </svg>
+    </span>
+    <div>
+      <p class="text-sm text-gray-500">Cursos inactivos</p>
+      <p class="text-2xl font-bold text-gray-900">{{ totalInactivos() }}</p>
+      <p class="text-xs text-red-500 mt-1">{{ porcentajeInactivos() }}% del total</p>
+    </div>
+  </div>
+</div>
+
+<!-- Filtros -->
+<div class="bg-white rounded-xl border border-gray-100 p-5 mb-6">
+  <div class="grid md:grid-cols-[2fr_1fr_1fr_auto] gap-3 items-end">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Buscar curso</label>
+      <div class="relative">
+        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar curso..."
+          class="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+          [value]="busquedaInput()"
+          (input)="actualizarBusqueda($any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Grado</label>
+      <select
+        class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+        [value]="gradoInput()"
+        (change)="actualizarGrado($any($event.target).value)"
+      >
+        <option value="">Todos los grados</option>
+        @for (grado of grados(); track grado) {
+          <option [value]="grado">{{ grado }}</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Estado</label>
+      <select
+        class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+        [value]="estadoInput()"
+        (change)="actualizarEstado($any($event.target).value)"
+      >
+        <option value="">Todos</option>
+        <option value="activo">Activo</option>
+        <option value="inactivo">Inactivo</option>
+      </select>
+    </div>
+
+    <button
+      type="button"
+      title="Próximamente disponible"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-lg border border-brand-teal text-brand-teal text-sm font-medium whitespace-nowrap opacity-70 cursor-not-allowed"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z" />
+      </svg>
+      Filtros
+    </button>
+  </div>
+</div>
+
+<!-- Tabla -->
+<div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+  @if (cargando()) {
+    <p class="text-sm text-gray-400 px-5 py-8 text-center">Cargando cursos...</p>
+  } @else if (cursosFiltrados().length === 0) {
+    <p class="text-sm text-gray-400 px-5 py-8 text-center">No hay cursos para los filtros seleccionados.</p>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-400 text-xs uppercase tracking-wide">
+            <th class="px-5 py-3 font-medium">Curso</th>
+            <th class="px-5 py-3 font-medium">Grado</th>
+            <th class="px-5 py-3 font-medium">Estudiantes</th>
+            <th class="px-5 py-3 font-medium">Director de curso</th>
+            <th class="px-5 py-3 font-medium">Estado</th>
+            <th class="px-5 py-3 font-medium text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (curso of cursosPagina(); track curso.id) {
+            <tr class="cursor-pointer hover:bg-gray-50" (click)="irACurso(curso.id)">
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <span class="w-9 h-9 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
+                  </span>
+                  <span class="font-medium text-gray-800">{{ curso.nombre }}</span>
+                </div>
+              </td>
+              <td class="px-5 py-3 text-gray-600">{{ curso.grado }}</td>
+              <td class="px-5 py-3 text-gray-600">
+                <span class="inline-flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                  </svg>
+                  {{ curso.cantidadEstudiantes }}
+                </span>
+              </td>
+              <td class="px-5 py-3 text-gray-600">{{ curso.director.nombres }} {{ curso.director.apellidos }}</td>
+              <td class="px-5 py-3">
+                @if (curso.estaActivo) {
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                    Activo
+                  </span>
+                } @else {
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    Inactivo
+                  </span>
+                }
+              </td>
+              <td class="px-5 py-3" (click)="$event.stopPropagation()">
+                <div class="flex items-center justify-end gap-1.5">
+                  <button type="button" (click)="irACurso(curso.id)" title="Ver curso" class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-500 hover:text-brand-teal hover:border-brand-teal">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </svg>
+                  </button>
+                  <button type="button" title="Próximamente disponible" class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-400">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="5" r="1.5" />
+                      <circle cx="12" cy="12" r="1.5" />
+                      <circle cx="12" cy="19" r="1.5" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between px-5 py-4 border-t border-gray-100">
+      <p class="text-sm text-gray-500">Mostrando {{ rangoMostrado() }} cursos</p>
+      <div class="flex items-center gap-1.5">
+        <button type="button" (click)="paginaAnterior()" [disabled]="pagina() <= 1" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+
+        @for (p of paginasVisibles(); track $index) {
+          @if (p === '...') {
+            <span class="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">…</span>
+          } @else {
+            <button
+              type="button"
+              (click)="irAPagina(p)"
+              class="w-8 h-8 rounded-lg text-sm font-medium flex items-center justify-center"
+              [class]="pagina() === p ? 'bg-brand-teal text-white' : 'text-gray-500 hover:bg-gray-50'"
+            >
+              {{ p }}
+            </button>
+          }
+        }
+
+        <button type="button" (click)="paginaSiguiente()" [disabled]="pagina() >= totalPaginas()" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+</div>
