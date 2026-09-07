@@ -6,8 +6,14 @@
       </svg>
     </span>
     <div>
-      <h1 class="text-2xl font-bold text-gray-900">Usuarios</h1>
-      <p class="text-sm text-gray-500">Administra las cuentas de profesores, rectores, coordinadores y administradores.</p>
+      <h1 class="text-2xl font-bold text-gray-900">{{ esCoordinador() ? 'Registrar profesor' : 'Usuarios' }}</h1>
+      <p class="text-sm text-gray-500">
+        @if (esCoordinador()) {
+          Registra nuevos profesores para el colegio.
+        } @else {
+          Administra las cuentas de profesores, rectores, coordinadores y administradores.
+        }
+      </p>
     </div>
   </div>
 
@@ -27,7 +33,7 @@
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
       </svg>
-      Nuevo usuario
+      {{ esCoordinador() ? 'Nuevo profesor' : 'Nuevo usuario' }}
     </button>
   </div>
 </div>
@@ -39,6 +45,7 @@
   <p class="text-sm text-red-500 mb-4">{{ errorAccion() }}</p>
 }
 
+@if (puedeGestionarCuentas()) {
 <!-- Tarjetas resumen -->
 <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
   <div class="bg-white rounded-xl border border-gray-100 p-5 flex items-center gap-4">
@@ -250,7 +257,7 @@
       </table>
     </div>
 
-    <div class="flex items-center justify-between px-5 py-4 border-t border-gray-100">
+    <div class="flex items-center justify-between flex-wrap gap-3 px-5 py-4 border-t border-gray-100">
       <p class="text-sm text-gray-500">Mostrando {{ rangoMostrado() }} usuarios</p>
       <div class="flex items-center gap-1.5">
         <button type="button" (click)="paginaAnterior()" [disabled]="pagina() <= 1" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">
@@ -281,13 +288,32 @@
     </div>
   }
 </div>
+} @else {
+  <div class="bg-white rounded-xl border border-gray-100 p-10 text-center max-w-lg mx-auto">
+    <span class="w-14 h-14 mx-auto rounded-2xl bg-brand-teal/10 text-brand-teal flex items-center justify-center mb-4">
+      <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M4.26 10.147a60.436 60.436 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443"
+        />
+      </svg>
+    </span>
+    <h2 class="text-base font-semibold text-gray-800 mb-1">Registro de profesores</h2>
+    <p class="text-sm text-gray-500">
+      Desde aquí puedes registrar nuevos profesores: se les crea su cuenta de acceso y se les envía la contraseña por
+      correo. La gestión del resto de cuentas (administradores, rectores y coordinadores) la manejan directamente el
+      rector o el administrador.
+    </p>
+  </div>
+}
 
 <!-- Modal: Nuevo usuario -->
 @if (mostrarModalNuevo()) {
   <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
       <div class="flex items-start justify-between mb-4">
-        <h3 class="text-lg font-bold text-gray-900">Nuevo usuario</h3>
+        <h3 class="text-lg font-bold text-gray-900">{{ esCoordinador() ? 'Nuevo profesor' : 'Nuevo usuario' }}</h3>
         <button type="button" (click)="cerrarModalNuevo()" class="text-gray-400 hover:text-gray-600">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -296,7 +322,10 @@
       </div>
 
       <p class="text-sm text-gray-500 mb-4">
-        La contraseña se genera automáticamente y se envía al correo del usuario. Para registrar un profesor, hazlo desde Cursos, ya que ahí se completan sus datos académicos.
+        La contraseña se genera automáticamente y se envía al correo de la persona.
+        @if (esProfesor()) {
+          Al elegir "Profesor" también se crea su registro académico (documento, teléfono).
+        }
       </p>
 
       @if (errorModal()) {
@@ -304,15 +333,47 @@
       }
 
       <form [formGroup]="formularioUsuario" (ngSubmit)="guardarUsuario()" class="space-y-4">
-        <div>
-          <label class="block text-sm text-gray-600 mb-1.5">Nombre completo</label>
-          <input
-            type="text"
-            formControlName="nombreCompleto"
-            placeholder="Nombre y apellidos"
-            class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm"
-          />
-        </div>
+        @if (!esProfesor()) {
+          <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Nombre completo</label>
+            <input
+              type="text"
+              formControlName="nombreCompleto"
+              placeholder="Nombre y apellidos"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm"
+            />
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-sm text-gray-600 mb-1.5">Nombres</label>
+              <input
+                type="text"
+                formControlName="nombres"
+                placeholder="Nombres"
+                class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm"
+              />
+            </div>
+            <div>
+              <label class="block text-sm text-gray-600 mb-1.5">Apellidos</label>
+              <input
+                type="text"
+                formControlName="apellidos"
+                placeholder="Apellidos"
+                class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm"
+              />
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Número de documento</label>
+            <input
+              type="text"
+              formControlName="numeroDocumento"
+              placeholder="Cédula o documento de identidad"
+              class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm"
+            />
+          </div>
+        }
 
         <div>
           <label class="block text-sm text-gray-600 mb-1.5">Correo</label>
@@ -334,14 +395,23 @@
           />
         </div>
 
-        <div>
-          <label class="block text-sm text-gray-600 mb-1.5">Rol</label>
-          <select formControlName="rol" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
-            @for (rol of rolesRegistrables; track rol.valor) {
-              <option [value]="rol.valor">{{ rol.etiqueta }}</option>
-            }
-          </select>
-        </div>
+        @if (!esCoordinador()) {
+          <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Rol</label>
+            <select formControlName="rol" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+              @for (rol of rolesDisponibles(); track rol.valor) {
+                <option [value]="rol.valor">{{ rol.etiqueta }}</option>
+              }
+            </select>
+          </div>
+        } @else {
+          <!-- Un coordinador solo puede registrar profesores: no tiene sentido
+               mostrarle un select con una sola opción fija. -->
+          <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Rol</label>
+            <p class="text-sm text-gray-700 px-3 py-2.5 rounded-lg bg-gray-50 border border-gray-200">Profesor</p>
+          </div>
+        }
 
         <div class="flex gap-3 pt-2">
           <button type="button" (click)="cerrarModalNuevo()" class="flex-1 px-4 py-2.5 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium">

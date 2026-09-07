@@ -1,4 +1,5 @@
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   CodigoEstadoUsuario,
@@ -12,7 +13,15 @@ import {
   UsuarioRegistrado,
   UsuariosService,
 } from '../../core/usuarios/usuarios';
+import { AcademicoService, CrearProfesor, ProfesorRegistrado } from '../../core/academico/academico';
 import { AuthService } from '../../core/auth/auth';
+
+// Además de admin/rector/coordinador (que crea /usuarios), desde este mismo
+// modal también se puede crear un profesor — en ese caso el formulario llama
+// a /academico/profesores en vez de /usuarios, porque un profesor necesita
+// datos académicos (nombres/apellidos por separado, documento) que las otras
+// cuentas no piden.
+type RolCreable = RolRegistrable | 'profesor';
 
 @Component({
   selector: 'app-usuarios',
@@ -22,13 +31,15 @@ import { AuthService } from '../../core/auth/auth';
 })
 export class UsuariosComponent {
   private readonly usuariosService = inject(UsuariosService);
+  private readonly academicoService = inject(AcademicoService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
 
-  protected readonly rolesRegistrables: { valor: RolRegistrable; etiqueta: string }[] = [
+  protected readonly rolesRegistrables: { valor: RolCreable; etiqueta: string }[] = [
     { valor: 'admin', etiqueta: 'Administrador' },
     { valor: 'rector', etiqueta: 'Rector' },
     { valor: 'coordinador', etiqueta: 'Coordinador' },
+    { valor: 'profesor', etiqueta: 'Profesor' },
   ];
 
   protected readonly hoyFormateado = new Intl.DateTimeFormat('es-CO', {
@@ -39,6 +50,19 @@ export class UsuariosComponent {
   }).format(new Date());
 
   protected readonly miUsuarioId = computed(() => this.authService.usuario()?.sub ?? null);
+
+  // Un coordinador puede registrar profesores desde aquí (el usuario lo pidió
+  // explícitamente), pero NO puede listar/gestionar el resto de cuentas —
+  // GET /usuarios, activar/desactivar y crear admin/rector/coordinador siguen
+  // reservados a admin/rector en el backend. Por eso esta pantalla, para un
+  // coordinador, muestra solo el flujo de "nuevo profesor" y ni siquiera pide
+  // la lista o el resumen (esas llamadas le devolverían 403).
+  protected readonly esCoordinador = computed(() => this.authService.usuario()?.rol === 'coordinador');
+  protected readonly puedeGestionarCuentas = computed(() => !this.esCoordinador());
+
+  protected readonly rolesDisponibles = computed(() =>
+    this.esCoordinador() ? this.rolesRegistrables.filter((rol) => rol.valor === 'profesor') : this.rolesRegistrables,
+  );
 
   protected readonly resumen = signal<ResumenUsuarios | null>(null);
   protected readonly lista = signal<ListaUsuarios | null>(null);
@@ -58,15 +82,25 @@ export class UsuariosComponent {
   protected readonly mostrarModalNuevo = signal(false);
   protected readonly guardandoUsuario = signal(false);
   protected readonly errorModal = signal<string | null>(null);
-  protected readonly usuarioRegistrado = signal<UsuarioRegistrado | null>(null);
+  protected readonly usuarioRegistrado = signal<UsuarioRegistrado | ProfesorRegistrado | null>(null);
   protected readonly passwordCopiada = signal(false);
 
   protected readonly formularioUsuario = this.fb.group({
     nombreCompleto: ['', [Validators.required, Validators.maxLength(200)]],
+    nombres: [''],
+    apellidos: [''],
+    numeroDocumento: [''],
     email: ['', [Validators.required, Validators.email]],
     telefono: [''],
-    rol: this.fb.nonNullable.control<RolRegistrable>('coordinador', Validators.required),
+    rol: this.fb.nonNullable.control<RolCreable>('coordinador', Validators.required),
   });
+
+  // Se usa solo para condicionar qué campos se muestran en la plantilla — los
+  // validadores reales de cada campo se ajustan aparte, en actualizarValidadoresPorRol().
+  protected readonly rolSeleccionado = toSignal(this.formularioUsuario.controls.rol.valueChanges, {
+    initialValue: this.formularioUsuario.controls.rol.value,
+  });
+  protected readonly esProfesor = computed(() => this.rolSeleccionado() === 'profesor');
 
   protected readonly paginasVisibles = computed<(number | '...')[]>(() => {
     const total = this.lista()?.totalPaginas ?? 1;
@@ -89,8 +123,31 @@ export class UsuariosComponent {
   });
 
   constructor() {
-    this.cargarResumen();
-    this.cargarLista();
+    if (this.puedeGestionarCuentas()) {
+      this.cargarResumen();
+      this.cargarLista();
+    }
+
+    this.formularioUsuario.controls.rol.valueChanges.subscribe((rol) => this.actualizarValidadoresPorRol(rol));
+  }
+
+  // "Nombre completo" solo aplica a admin/rector/coordinador; un profesor
+  // necesita nombres/apellidos separados y número de documento (el backend de
+  // /academico/profesores lo exige para evitar duplicados). Se alternan los
+  // validadores en vez de tener dos formularios distintos.
+  private actualizarValidadoresPorRol(rol: RolCreable): void {
+    const esProfesor = rol === 'profesor';
+    const { nombreCompleto, nombres, apellidos, numeroDocumento } = this.formularioUsuario.controls;
+
+    nombreCompleto.setValidators(esProfesor ? [] : [Validators.required, Validators.maxLength(200)]);
+    nombres.setValidators(esProfesor ? [Validators.required, Validators.maxLength(120)] : []);
+    apellidos.setValidators(esProfesor ? [Validators.required, Validators.maxLength(120)] : []);
+    numeroDocumento.setValidators(esProfesor ? [Validators.required, Validators.maxLength(30)] : []);
+
+    nombreCompleto.updateValueAndValidity({ emitEvent: false });
+    nombres.updateValueAndValidity({ emitEvent: false });
+    apellidos.updateValueAndValidity({ emitEvent: false });
+    numeroDocumento.updateValueAndValidity({ emitEvent: false });
   }
 
   actualizarBusqueda(valor: string): void {
@@ -193,7 +250,20 @@ export class UsuariosComponent {
   }
 
   abrirModalNuevo(): void {
-    this.formularioUsuario.reset({ nombreCompleto: '', email: '', telefono: '', rol: 'coordinador' });
+    // Un coordinador solo puede crear profesores — se fuerza el rol del
+    // formulario a 'profesor' en vez de dejarlo elegir e intentar admin/rector/
+    // coordinador, que el backend le rechazaría con 403.
+    const rolInicial = this.esCoordinador() ? 'profesor' : 'coordinador';
+    this.formularioUsuario.reset({
+      nombreCompleto: '',
+      nombres: '',
+      apellidos: '',
+      numeroDocumento: '',
+      email: '',
+      telefono: '',
+      rol: rolInicial,
+    });
+    this.actualizarValidadoresPorRol(rolInicial);
     this.errorModal.set(null);
     this.mostrarModalNuevo.set(true);
   }
@@ -209,33 +279,52 @@ export class UsuariosComponent {
     }
 
     const valores = this.formularioUsuario.getRawValue();
+    this.errorModal.set(null);
+    this.guardandoUsuario.set(true);
+
+    if (valores.rol === 'profesor') {
+      const dto: CrearProfesor = {
+        nombres: valores.nombres!,
+        apellidos: valores.apellidos!,
+        numeroDocumento: valores.numeroDocumento!,
+        email: valores.email!,
+        telefono: valores.telefono || undefined,
+      };
+      this.academicoService.crearProfesor(dto).subscribe({
+        next: (resultado) => this.alRegistrarExito(resultado),
+        error: (error) => this.alRegistrarError(error, 'profesor'),
+      });
+      return;
+    }
+
     const dto: RegistrarUsuario = {
       nombreCompleto: valores.nombreCompleto!,
       email: valores.email!,
       telefono: valores.telefono || undefined,
       rol: valores.rol,
     };
-
-    this.errorModal.set(null);
-    this.guardandoUsuario.set(true);
     this.usuariosService.registrar(dto).subscribe({
-      next: (resultado) => {
-        this.guardandoUsuario.set(false);
-        this.mostrarModalNuevo.set(false);
-        this.pagina.set(1);
-        this.cargarLista();
-        this.cargarResumen();
-        // Si el correo no se pudo enviar, mostramos la contraseña temporal
-        // una única vez para que el administrador la comunique manualmente.
-        if (!resultado.correoEnviado) {
-          this.usuarioRegistrado.set(resultado);
-        }
-      },
-      error: (error) => {
-        this.guardandoUsuario.set(false);
-        this.errorModal.set(error.error?.message ?? 'No se pudo registrar el usuario.');
-      },
+      next: (resultado) => this.alRegistrarExito(resultado),
+      error: (error) => this.alRegistrarError(error, 'usuario'),
     });
+  }
+
+  private alRegistrarExito(resultado: UsuarioRegistrado | ProfesorRegistrado): void {
+    this.guardandoUsuario.set(false);
+    this.mostrarModalNuevo.set(false);
+    this.pagina.set(1);
+    this.cargarLista();
+    this.cargarResumen();
+    // Si el correo no se pudo enviar, mostramos la contraseña temporal una
+    // única vez para que quien lo creó la comunique manualmente.
+    if (!resultado.correoEnviado) {
+      this.usuarioRegistrado.set(resultado);
+    }
+  }
+
+  private alRegistrarError(error: { error?: { message?: string } }, tipo: 'usuario' | 'profesor'): void {
+    this.guardandoUsuario.set(false);
+    this.errorModal.set(error.error?.message ?? `No se pudo registrar el ${tipo}.`);
   }
 
   copiarPassword(): void {

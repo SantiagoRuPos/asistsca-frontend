@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AsistenciaService, ResumenCurso } from '../../core/asistencia/asistencia';
+import { AuthService } from '../../core/auth/auth';
 
 type SeccionCurso = 'llegaron' | 'llegaronTarde' | 'noHanLlegado' | 'evadidos';
 
@@ -12,6 +13,7 @@ type SeccionCurso = 'llegaron' | 'llegaronTarde' | 'noHanLlegado' | 'evadidos';
 })
 export class CursoDetalleComponent {
   private readonly asistenciaService = inject(AsistenciaService);
+  private readonly authService = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -42,6 +44,16 @@ export class CursoDetalleComponent {
     const [anio, mes, dia] = this.fecha().split('-').map(Number);
     const fechaLocal = new Date(anio, mes - 1, dia);
     return new Intl.DateTimeFormat('es-CO', { day: 'numeric', month: 'long', year: 'numeric' }).format(fechaLocal);
+  });
+
+  // El backend (POST /asistencia/diaria/manual) permite marcar evadido a
+  // admin/rector/coordinador y también a cualquier profesor (de cualquier
+  // curso, no solo el que dirige) — es el profesor que está físicamente en
+  // el salón quien nota que el estudiante no está, así que necesita poder
+  // marcarlo aunque no sea su curso dirigido.
+  protected readonly puedeMarcarEvadido = computed(() => {
+    const rol = this.authService.usuario()?.rol;
+    return rol === 'admin' || rol === 'rector' || rol === 'coordinador' || rol === 'profesor';
   });
 
   constructor() {

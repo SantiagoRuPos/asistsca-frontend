@@ -219,7 +219,7 @@
       </table>
     </div>
 
-    <div class="flex items-center justify-between px-5 py-4 border-t border-gray-100">
+    <div class="flex items-center justify-between flex-wrap gap-3 px-5 py-4 border-t border-gray-100">
       <p class="text-sm text-gray-500">Mostrando {{ rangoMostrado() }} cursos</p>
       <div class="flex items-center gap-1.5">
         <button type="button" (click)="paginaAnterior()" [disabled]="pagina() <= 1" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">

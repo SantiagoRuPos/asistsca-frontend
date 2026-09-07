@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CrearLector, LectorCreado, LectorNfc, NfcService } from '../../core/nfc/nfc';
 import {
@@ -29,8 +29,9 @@ export class ConfiguracionComponent {
     timeZone: 'America/Bogota',
   }).format(new Date());
 
-  // TODO: reemplazar por el nombre real cuando el JWT o /usuarios/me lo provean (mismo TODO que en shell.ts).
-  protected readonly nombreMostrado = computed(() => this.authService.usuario()?.email?.split('@')[0] ?? 'Usuario');
+  // El JWT ya trae nombreCompleto (ver AuthService.emitirTokens) — mismo
+  // cambio que en shell.ts, cierra el TODO histórico de ambos archivos.
+  protected readonly nombreMostrado = computed(() => this.authService.usuario()?.nombreCompleto ?? 'Usuario');
   protected readonly inicialesUsuario = computed(() => this.nombreMostrado().slice(0, 2).toUpperCase());
   protected readonly etiquetaRol = computed(() => {
     const rol = this.authService.usuario()?.rol;
@@ -55,6 +56,29 @@ export class ConfiguracionComponent {
   protected readonly lectoresMostrados = computed(() =>
     this.mostrarInactivos() ? this.lectores() : this.lectoresActivos(),
   );
+
+  // --- Indicador de "sin señal" por lector ---
+  // Un lector se considera sin señal si nunca ha reportado conexión, o si su
+  // último `ultimaConexion` (actualizado por LectorApiKeyGuard en cada evento
+  // NFC o consulta a GET /api/health que haga el ESP32) tiene más de 2 minutos.
+  // `ahora` se actualiza sola cada 10s para que el indicador cambie de verde a
+  // rojo/parpadeante sin depender de que el usuario recargue la pantalla, y la
+  // lista de lectores se vuelve a pedir cada 30s para reflejar reconexiones reales.
+  private static readonly UMBRAL_SIN_SENAL_MS = 2 * 60 * 1000;
+  private readonly destroyRef = inject(DestroyRef);
+  protected readonly ahora = signal(Date.now());
+
+  protected readonly sinSenalPorId = computed(() => {
+    const ahora = this.ahora();
+    const mapa = new Map<string, boolean>();
+    for (const lector of this.lectores()) {
+      const sinSenal =
+        !lector.ultimaConexion ||
+        ahora - new Date(lector.ultimaConexion).getTime() > ConfiguracionComponent.UMBRAL_SIN_SENAL_MS;
+      mapa.set(lector.id, sinSenal);
+    }
+    return mapa;
+  });
 
   protected readonly guardandoLector = signal(false);
   protected readonly errorLector = signal<string | null>(null);
@@ -91,6 +115,13 @@ export class ConfiguracionComponent {
   constructor() {
     this.cargarLectores();
     this.cargarConfigWhatsapp();
+
+    const intervaloReloj = setInterval(() => this.ahora.set(Date.now()), 10_000);
+    const intervaloRefresco = setInterval(() => this.actualizarLectoresEnSegundoPlano(), 30_000);
+    this.destroyRef.onDestroy(() => {
+      clearInterval(intervaloReloj);
+      clearInterval(intervaloRefresco);
+    });
   }
 
   @HostListener('document:click')
@@ -267,6 +298,18 @@ export class ConfiguracionComponent {
         this.errorLectores.set('No se pudo cargar la lista de lectores.');
         this.cargandoLectores.set(false);
       },
+    });
+  }
+
+  // Refresco periódico (cada 30s) para que "última conexión" y el indicador de
+  // señal reflejen reconexiones reales sin que el usuario tenga que recargar la
+  // pantalla. A diferencia de cargarLectores(), no toca cargandoLectores/errorLectores:
+  // un fallo puntual de red en un refresco de fondo no debe hacer parpadear toda
+  // la tabla a estado de carga ni tapar la última lista buena con un mensaje de error.
+  private actualizarLectoresEnSegundoPlano(): void {
+    this.nfcService.listarLectores().subscribe({
+      next: (lectores) => this.lectores.set(lectores),
+      error: () => {},
     });
   }
 

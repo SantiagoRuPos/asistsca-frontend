@@ -1,0 +1,337 @@
+<div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+  <div class="flex items-center gap-3">
+    <span class="w-11 h-11 rounded-xl bg-brand-teal/10 text-brand-teal flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      </svg>
+    </span>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Acudientes</h1>
+      <p class="text-sm text-gray-500">Registra y gestiona los acudientes de los estudiantes y su contacto de notificación por WhatsApp.</p>
+    </div>
+  </div>
+
+  <button
+    type="button"
+    (click)="abrirModalCrear()"
+    class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark transition-colors"
+  >
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+    Registrar acudiente
+  </button>
+</div>
+
+<!-- Filtros -->
+<div class="bg-white rounded-xl border border-gray-100 p-5 mb-6">
+  <div class="grid md:grid-cols-[2fr_auto] gap-3 items-end">
+    <div>
+      <label class="block text-xs font-medium text-gray-500 mb-1">Buscar acudiente</label>
+      <div class="relative">
+        <svg class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <input
+          type="text"
+          placeholder="Nombre, apellido, documento o teléfono..."
+          class="w-full pl-9 pr-3 py-2.5 rounded-lg border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-teal/30"
+          [value]="busquedaInput()"
+          (input)="busquedaInput.set($any($event.target).value)"
+          (keyup.enter)="buscar()"
+        />
+      </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button
+        type="button"
+        (click)="buscar()"
+        class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark transition-colors whitespace-nowrap"
+      >
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        Buscar
+      </button>
+    </div>
+  </div>
+
+  <button type="button" (click)="limpiarFiltros()" class="flex items-center gap-1.5 text-sm text-brand-teal font-medium mt-3">
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+    </svg>
+    Limpiar filtros
+  </button>
+</div>
+
+<!-- Tabla -->
+<div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+  @if (error()) {
+    <p class="text-sm text-red-500 px-5 py-4">{{ error() }}</p>
+  } @else if (cargandoLista()) {
+    <p class="text-sm text-gray-400 px-5 py-8 text-center">Cargando acudientes...</p>
+  } @else if (!lista() || lista()!.datos.length === 0) {
+    <p class="text-sm text-gray-400 px-5 py-8 text-center">No hay acudientes para los filtros seleccionados.</p>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-400 text-xs uppercase tracking-wide">
+            <th class="px-5 py-3 font-medium">Acudiente</th>
+            <th class="px-5 py-3 font-medium">Parentesco</th>
+            <th class="px-5 py-3 font-medium">Documento</th>
+            <th class="px-5 py-3 font-medium">Contacto</th>
+            <th class="px-5 py-3 font-medium">Estudiantes vinculados</th>
+            <th class="px-5 py-3 font-medium text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (acudiente of lista()!.datos; track acudiente.id) {
+            <tr>
+              <td class="px-5 py-3">
+                <div class="flex items-center gap-3">
+                  <span class="w-9 h-9 rounded-full bg-brand-teal/10 text-brand-teal font-semibold flex items-center justify-center text-xs shrink-0">
+                    {{ iniciales(acudiente.nombres, acudiente.apellidos) }}
+                  </span>
+                  <span class="font-medium text-gray-800">{{ acudiente.nombres }} {{ acudiente.apellidos }}</span>
+                </div>
+              </td>
+              <td class="px-5 py-3 text-gray-600">{{ etiquetaParentesco(acudiente.parentesco) }}</td>
+              <td class="px-5 py-3 text-gray-600">{{ acudiente.numeroDocumento ?? '—' }}</td>
+              <td class="px-5 py-3 text-gray-600">
+                <div class="flex flex-col">
+                  <span class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                    </svg>
+                    {{ acudiente.telefonoWhatsapp }}
+                  </span>
+                  @if (acudiente.email) {
+                    <span class="text-xs text-gray-400">{{ acudiente.email }}</span>
+                  }
+                </div>
+              </td>
+              <td class="px-5 py-3">
+                @if (acudiente.estudiantes.length === 0) {
+                  <span class="text-gray-400 text-xs">Sin estudiante vinculado</span>
+                } @else {
+                  <div class="flex flex-col gap-1.5">
+                    @for (est of acudiente.estudiantes; track est.id) {
+                      <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-600 border border-gray-100">
+                          {{ est.nombres }} {{ est.apellidos }}
+                        </span>
+                        <button
+                          type="button"
+                          [title]="est.esContactoNotificacion ? 'Recibe notificaciones de WhatsApp — clic para desactivar' : 'No recibe notificaciones — clic para activar'"
+                          [disabled]="togglingContacto() === (est.id + '-' + acudiente.id)"
+                          (click)="toggleContacto(est.id, acudiente.id, est.esContactoNotificacion)"
+                          class="w-6 h-6 rounded-full inline-flex items-center justify-center shrink-0 disabled:opacity-50"
+                          [class]="est.esContactoNotificacion ? 'bg-brand-teal/10 text-brand-teal' : 'bg-gray-50 text-gray-300 hover:text-gray-400'"
+                        >
+                          <svg class="w-3.5 h-3.5" [attr.fill]="est.esContactoNotificacion ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
+                          </svg>
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+              </td>
+              <td class="px-5 py-3">
+                <div class="flex items-center justify-end gap-1.5">
+                  <button
+                    type="button"
+                    title="Editar acudiente"
+                    (click)="abrirModalEditar(acudiente)"
+                    class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.932Zm0 0L19.5 7.125" />
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between flex-wrap gap-3 px-5 py-4 border-t border-gray-100">
+      <p class="text-sm text-gray-500">Mostrando {{ rangoMostrado() }} acudientes</p>
+      <div class="flex items-center gap-1.5">
+        <button type="button" (click)="paginaAnterior()" [disabled]="pagina() <= 1" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+
+        @for (p of paginasVisibles(); track $index) {
+          @if (p === '...') {
+            <span class="w-8 h-8 flex items-center justify-center text-gray-400 text-sm">…</span>
+          } @else {
+            <button
+              type="button"
+              (click)="irAPagina(p)"
+              class="w-8 h-8 rounded-lg text-sm font-medium flex items-center justify-center"
+              [class]="pagina() === p ? 'bg-brand-teal text-white' : 'text-gray-500 hover:bg-gray-50'"
+            >
+              {{ p }}
+            </button>
+          }
+        }
+
+        <button type="button" (click)="paginaSiguiente()" [disabled]="pagina() >= (lista()?.totalPaginas ?? 1)" class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 disabled:opacity-40">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Modal: registrar acudiente -->
+@if (mostrarModalCrear()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-900">Registrar acudiente</h2>
+        <button type="button" (click)="cerrarModalCrear()" class="text-gray-400">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="formularioCrear" (ngSubmit)="guardarCrear()" class="flex flex-col gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Nombres</label>
+            <input type="text" formControlName="nombres" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Apellidos</label>
+            <input type="text" formControlName="apellidos" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Parentesco</label>
+            <select formControlName="parentesco" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+              @for (p of parentescos; track p.valor) {
+                <option [value]="p.valor">{{ p.etiqueta }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">WhatsApp</label>
+            <input type="tel" formControlName="telefonoWhatsapp" placeholder="+57 300 000 0000" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Correo (opcional)</label>
+            <input type="email" formControlName="email" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Documento (opcional)</label>
+            <input type="text" formControlName="numeroDocumento" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Vincular a un estudiante (opcional)</label>
+          <select formControlName="estudianteId" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+            <option value="">Sin vincular por ahora</option>
+            @for (est of estudiantesMatriculados(); track est.id) {
+              <option [value]="est.id">{{ est.nombres }} {{ est.apellidos }} — {{ est.numeroDocumento }}</option>
+            }
+          </select>
+          <p class="text-xs text-gray-400 mt-1">Si vinculas un estudiante ahora, este acudiente quedará como su contacto de notificación por WhatsApp.</p>
+        </div>
+
+        @if (errorCrear()) {
+          <p class="text-sm text-red-500">{{ errorCrear() }}</p>
+        }
+
+        <div class="flex items-center justify-end gap-3 mt-2">
+          <button type="button" (click)="cerrarModalCrear()" class="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
+          <button type="submit" [disabled]="guardandoCrear()" class="px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60">
+            {{ guardandoCrear() ? 'Guardando...' : 'Registrar acudiente' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal: editar acudiente -->
+@if (acudienteEditando()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-900">Editar acudiente</h2>
+        <button type="button" (click)="cerrarModalEditar()" class="text-gray-400">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="formularioEditar" (ngSubmit)="guardarEditar()" class="flex flex-col gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Nombres</label>
+            <input type="text" formControlName="nombres" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Apellidos</label>
+            <input type="text" formControlName="apellidos" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Parentesco</label>
+            <select formControlName="parentesco" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+              @for (p of parentescos; track p.valor) {
+                <option [value]="p.valor">{{ p.etiqueta }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">WhatsApp</label>
+            <input type="tel" formControlName="telefonoWhatsapp" placeholder="+57 300 000 0000" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Correo (opcional)</label>
+            <input type="email" formControlName="email" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Documento (opcional)</label>
+            <input type="text" formControlName="numeroDocumento" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+        </div>
+
+        @if (errorEditar()) {
+          <p class="text-sm text-red-500">{{ errorEditar() }}</p>
+        }
+
+        <div class="flex items-center justify-end gap-3 mt-2">
+          <button type="button" (click)="cerrarModalEditar()" class="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
+          <button type="submit" [disabled]="guardandoEditar()" class="px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60">
+            {{ guardandoEditar() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

@@ -126,41 +126,55 @@
       @if (resumen()!.llegaron.estudiantes.length === 0) {
         <p class="text-sm text-gray-400 px-5 pb-4">Nadie ha llegado todavía.</p>
       } @else {
-        <table class="w-full text-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
           <thead>
-            <tr class="text-left text-gray-400 text-xs uppercase tracking-wide border-t border-gray-100">
-              <th class="px-5 py-2 font-medium">Estudiante</th>
-              <th class="px-5 py-2 font-medium">Hora de llegada</th>
-              <th class="px-5 py-2 font-medium">Punto de registro</th>
-              <th class="px-5 py-2 font-medium"></th>
-            </tr>
+          <tr class="text-left text-gray-400 text-xs uppercase tracking-wide border-t border-gray-100">
+          <th class="px-5 py-2 font-medium">Estudiante</th>
+          <th class="px-5 py-2 font-medium">Hora de llegada</th>
+          <th class="px-5 py-2 font-medium">Punto de registro</th>
+          <th class="px-5 py-2 font-medium"></th>
+          </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
-            @for (estudiante of filasVisibles('llegaron', resumen()!.llegaron.estudiantes); track estudiante.id) {
-              <tr>
-                <td class="px-5 py-2.5">
-                  <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-full bg-green-50 text-green-600 font-semibold flex items-center justify-center text-xs shrink-0">
-                      {{ iniciales(estudiante.nombres, estudiante.apellidos) }}
-                    </span>
-                    <span class="text-gray-800">{{ estudiante.nombres }} {{ estudiante.apellidos }}</span>
-                  </div>
-                </td>
-                <td class="px-5 py-2.5 text-gray-600">{{ formatearHora(estudiante.horaEntrada) }}</td>
-                <td class="px-5 py-2.5 text-gray-600">{{ estudiante.puntoRegistro ?? '—' }}</td>
-                <td class="px-5 py-2.5 text-right">
-                  <button type="button" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 inline-flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                    Ver registro
-                  </button>
-                </td>
-              </tr>
-            }
+          @for (estudiante of filasVisibles('llegaron', resumen()!.llegaron.estudiantes); track estudiante.id) {
+          <tr>
+          <td class="px-5 py-2.5">
+          <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-full bg-green-50 text-green-600 font-semibold flex items-center justify-center text-xs shrink-0">
+          {{ iniciales(estudiante.nombres, estudiante.apellidos) }}
+          </span>
+          <span class="text-gray-800">{{ estudiante.nombres }} {{ estudiante.apellidos }}</span>
+          </div>
+          </td>
+          <td class="px-5 py-2.5 text-gray-600">{{ formatearHora(estudiante.horaEntrada) }}</td>
+          <td class="px-5 py-2.5 text-gray-600">{{ estudiante.puntoRegistro ?? '—' }}</td>
+          <td class="px-5 py-2.5 text-right">
+          <div class="inline-flex items-center gap-2">
+          @if (puedeMarcarEvadido()) {
+          <button
+          type="button"
+          (click)="marcarEvadido(estudiante.id)"
+          [disabled]="accionEnCurso() === estudiante.id"
+          class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-medium text-red-500 hover:bg-red-50 disabled:opacity-50"
+          >
+          {{ accionEnCurso() === estudiante.id ? 'Marcando...' : 'Marcar evadido' }}
+          </button>
+          }
+          <button type="button" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 inline-flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+          Ver registro
+          </button>
+          </div>
+          </td>
+          </tr>
+          }
           </tbody>
-        </table>
+          </table>
+        </div>
 
         @if (!mostrarTodos().llegaron && resumen()!.llegaron.estudiantes.length > 2) {
           <button type="button" (click)="verTodos('llegaron')" class="text-sm text-brand-teal font-medium px-5 pb-4">
@@ -192,41 +206,55 @@
       @if (resumen()!.llegaronTarde.estudiantes.length === 0) {
         <p class="text-sm text-gray-400 px-5 pb-4">Nadie ha llegado tarde.</p>
       } @else {
-        <table class="w-full text-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
           <thead>
-            <tr class="text-left text-gray-400 text-xs uppercase tracking-wide border-t border-gray-100">
-              <th class="px-5 py-2 font-medium">Estudiante</th>
-              <th class="px-5 py-2 font-medium">Hora de llegada</th>
-              <th class="px-5 py-2 font-medium">Punto de registro</th>
-              <th class="px-5 py-2 font-medium"></th>
-            </tr>
+          <tr class="text-left text-gray-400 text-xs uppercase tracking-wide border-t border-gray-100">
+          <th class="px-5 py-2 font-medium">Estudiante</th>
+          <th class="px-5 py-2 font-medium">Hora de llegada</th>
+          <th class="px-5 py-2 font-medium">Punto de registro</th>
+          <th class="px-5 py-2 font-medium"></th>
+          </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
-            @for (estudiante of filasVisibles('llegaronTarde', resumen()!.llegaronTarde.estudiantes); track estudiante.id) {
-              <tr>
-                <td class="px-5 py-2.5">
-                  <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 font-semibold flex items-center justify-center text-xs shrink-0">
-                      {{ iniciales(estudiante.nombres, estudiante.apellidos) }}
-                    </span>
-                    <span class="text-gray-800">{{ estudiante.nombres }} {{ estudiante.apellidos }}</span>
-                  </div>
-                </td>
-                <td class="px-5 py-2.5 text-amber-600 font-medium">{{ formatearHora(estudiante.horaEntrada) }}</td>
-                <td class="px-5 py-2.5 text-gray-600">{{ estudiante.puntoRegistro ?? '—' }}</td>
-                <td class="px-5 py-2.5 text-right">
-                  <button type="button" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 inline-flex items-center gap-1.5">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                    </svg>
-                    Ver registro
-                  </button>
-                </td>
-              </tr>
-            }
+          @for (estudiante of filasVisibles('llegaronTarde', resumen()!.llegaronTarde.estudiantes); track estudiante.id) {
+          <tr>
+          <td class="px-5 py-2.5">
+          <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 font-semibold flex items-center justify-center text-xs shrink-0">
+          {{ iniciales(estudiante.nombres, estudiante.apellidos) }}
+          </span>
+          <span class="text-gray-800">{{ estudiante.nombres }} {{ estudiante.apellidos }}</span>
+          </div>
+          </td>
+          <td class="px-5 py-2.5 text-amber-600 font-medium">{{ formatearHora(estudiante.horaEntrada) }}</td>
+          <td class="px-5 py-2.5 text-gray-600">{{ estudiante.puntoRegistro ?? '—' }}</td>
+          <td class="px-5 py-2.5 text-right">
+          <div class="inline-flex items-center gap-2">
+          @if (puedeMarcarEvadido()) {
+          <button
+          type="button"
+          (click)="marcarEvadido(estudiante.id)"
+          [disabled]="accionEnCurso() === estudiante.id"
+          class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-medium text-red-500 hover:bg-red-50 disabled:opacity-50"
+          >
+          {{ accionEnCurso() === estudiante.id ? 'Marcando...' : 'Marcar evadido' }}
+          </button>
+          }
+          <button type="button" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 inline-flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          </svg>
+          Ver registro
+          </button>
+          </div>
+          </td>
+          </tr>
+          }
           </tbody>
-        </table>
+          </table>
+        </div>
 
         @if (!mostrarTodos().llegaronTarde && resumen()!.llegaronTarde.estudiantes.length > 2) {
           <button type="button" (click)="verTodos('llegaronTarde')" class="text-sm text-brand-teal font-medium px-5 pb-4">
@@ -257,38 +285,29 @@
       @if (resumen()!.noHanLlegado.estudiantes.length === 0) {
         <p class="text-sm text-gray-400 px-5 pb-4">Todos han llegado.</p>
       } @else {
-        <table class="w-full text-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
           <thead>
-            <tr class="text-left text-gray-400 text-xs uppercase tracking-wide border-t border-gray-100">
-              <th class="px-5 py-2 font-medium">Estudiante</th>
-              <th class="px-5 py-2 font-medium text-right">Acciones</th>
-            </tr>
+          <tr class="text-left text-gray-400 text-xs uppercase tracking-wide border-t border-gray-100">
+          <th class="px-5 py-2 font-medium">Estudiante</th>
+          </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
-            @for (estudiante of filasVisibles('noHanLlegado', resumen()!.noHanLlegado.estudiantes); track estudiante.id) {
-              <tr>
-                <td class="px-5 py-2.5">
-                  <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-full bg-red-50 text-red-500 font-semibold flex items-center justify-center text-xs shrink-0">
-                      {{ iniciales(estudiante.nombres, estudiante.apellidos) }}
-                    </span>
-                    <span class="text-gray-800">{{ estudiante.nombres }} {{ estudiante.apellidos }}</span>
-                  </div>
-                </td>
-                <td class="px-5 py-2.5 text-right">
-                  <button
-                    type="button"
-                    (click)="marcarEvadido(estudiante.id)"
-                    [disabled]="accionEnCurso() === estudiante.id"
-                    class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-medium text-red-500 hover:bg-red-50 disabled:opacity-50"
-                  >
-                    {{ accionEnCurso() === estudiante.id ? 'Marcando...' : 'Marcar evadido' }}
-                  </button>
-                </td>
-              </tr>
-            }
+          @for (estudiante of filasVisibles('noHanLlegado', resumen()!.noHanLlegado.estudiantes); track estudiante.id) {
+          <tr>
+          <td class="px-5 py-2.5">
+          <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-full bg-red-50 text-red-500 font-semibold flex items-center justify-center text-xs shrink-0">
+          {{ iniciales(estudiante.nombres, estudiante.apellidos) }}
+          </span>
+          <span class="text-gray-800">{{ estudiante.nombres }} {{ estudiante.apellidos }}</span>
+          </div>
+          </td>
+          </tr>
+          }
           </tbody>
-        </table>
+          </table>
+        </div>
 
         @if (!mostrarTodos().noHanLlegado && resumen()!.noHanLlegado.estudiantes.length > 2) {
           <button type="button" (click)="verTodos('noHanLlegado')" class="text-sm text-brand-teal font-medium px-5 pb-4">
@@ -319,31 +338,33 @@
       @if (resumen()!.evadidos.estudiantes.length === 0) {
         <p class="text-sm text-gray-400 px-5 pb-4">No hay estudiantes evadidos hoy.</p>
       } @else {
-        <table class="w-full text-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
           <thead>
-            <tr class="text-left text-gray-400 text-xs uppercase tracking-wide border-t border-gray-100">
-              <th class="px-5 py-2 font-medium">Estudiante</th>
-              <th class="px-5 py-2 font-medium text-right">Acciones</th>
-            </tr>
+          <tr class="text-left text-gray-400 text-xs uppercase tracking-wide border-t border-gray-100">
+          <th class="px-5 py-2 font-medium">Estudiante</th>
+          <th class="px-5 py-2 font-medium text-right">Acciones</th>
+          </tr>
           </thead>
           <tbody class="divide-y divide-gray-50">
-            @for (estudiante of filasVisibles('evadidos', resumen()!.evadidos.estudiantes); track estudiante.id) {
-              <tr>
-                <td class="px-5 py-2.5">
-                  <div class="flex items-center gap-3">
-                    <span class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 font-semibold flex items-center justify-center text-xs shrink-0">
-                      {{ iniciales(estudiante.nombres, estudiante.apellidos) }}
-                    </span>
-                    <span class="text-gray-800">{{ estudiante.nombres }} {{ estudiante.apellidos }}</span>
-                  </div>
-                </td>
-                <td class="px-5 py-2.5 text-right">
-                  <span class="px-3 py-1.5 rounded-lg bg-gray-100 text-xs font-medium text-gray-500">Evadido</span>
-                </td>
-              </tr>
-            }
+          @for (estudiante of filasVisibles('evadidos', resumen()!.evadidos.estudiantes); track estudiante.id) {
+          <tr>
+          <td class="px-5 py-2.5">
+          <div class="flex items-center gap-3">
+          <span class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 font-semibold flex items-center justify-center text-xs shrink-0">
+          {{ iniciales(estudiante.nombres, estudiante.apellidos) }}
+          </span>
+          <span class="text-gray-800">{{ estudiante.nombres }} {{ estudiante.apellidos }}</span>
+          </div>
+          </td>
+          <td class="px-5 py-2.5 text-right">
+          <span class="px-3 py-1.5 rounded-lg bg-gray-100 text-xs font-medium text-gray-500">Evadido</span>
+          </td>
+          </tr>
+          }
           </tbody>
-        </table>
+          </table>
+        </div>
 
         @if (!mostrarTodos().evadidos && resumen()!.evadidos.estudiantes.length > 2) {
           <button type="button" (click)="verTodos('evadidos')" class="text-sm text-brand-teal font-medium px-5 pb-4">

@@ -10,4 +10,65 @@
 }
 html, body {
   height: 100%;
+  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/*
+ * Pase visual (2026-09-06): estos ajustes son deliberadamente globales, en
+ * vez de tocar cada plantilla una por una — el proyecto ya usa clases de
+ * Tailwind muy repetidas (ej. "rounded-xl border border-gray-100" en más de
+ * 50 tarjetas), así que un único selector combinado aquí eleva toda la
+ * interfaz de una sola vez, sin arriesgar romper el HTML de cada pantalla.
+ */
+
+/* Sombra sutil en las tarjetas blancas que ya usa casi toda la app */
+.rounded-xl.border.border-gray-100,
+.rounded-lg.border.border-gray-100 {
+  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.04), 0 1px 1px 0 rgba(15, 23, 42, 0.03);
+}
+
+/* Anillo de foco visible en cualquier campo que no traiga ya uno explícito
+   por Tailwind (los ~23 que ya usan focus:ring-2 no se ven afectados: una
+   utilidad de Tailwind con clase siempre gana por especificidad sobre esto) */
+input, select, textarea {
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--color-brand-teal);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.15);
+}
+
+/* Feedback táctil al presionar cualquier botón */
+button {
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease, transform 100ms ease;
+}
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
+
+/* Resalta la fila bajo el cursor en cualquier tabla de la aplicación */
+table tbody tr:hover {
+  background-color: rgba(15, 23, 42, 0.025);
+}
+
+
+/* Scrollbar delgado y discreto (Chrome/Edge/Safari) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(15, 23, 42, 0.15);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(15, 23, 42, 0.28);
 }

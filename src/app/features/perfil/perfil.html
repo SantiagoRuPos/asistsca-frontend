@@ -1,0 +1,166 @@
+<div class="max-w-2xl mx-auto">
+
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-11 h-11 rounded-xl bg-brand-teal/10 text-brand-teal flex items-center justify-center shrink-0">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.964 0a9 9 0 1 0-11.964 0m11.964 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+      </svg>
+    </span>
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Mi perfil</h1>
+      <p class="text-sm text-gray-500">Tus datos y tu contraseña de acceso.</p>
+    </div>
+  </div>
+
+  @if (cambioForzado()) {
+    <div class="mb-6 flex gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+      <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+      </svg>
+      <p class="text-sm text-amber-800">
+        Por seguridad, debes cambiar tu contraseña temporal antes de continuar usando AsistSCA.
+      </p>
+    </div>
+  }
+
+  @if (error()) {
+    <p class="text-sm text-red-500 mb-4">{{ error() }}</p>
+  }
+
+  @if (cargando()) {
+    <p class="text-sm text-gray-400">Cargando tu perfil...</p>
+  } @else if (perfil(); as datos) {
+
+    <!-- Tus datos -->
+    <div class="bg-white rounded-xl border border-gray-100 p-5 mb-6">
+      <h2 class="font-semibold text-gray-800 mb-4">Tus datos</h2>
+
+      <dl class="grid sm:grid-cols-2 gap-4 text-sm">
+        <div>
+          <dt class="text-gray-500">Nombre</dt>
+          <dd class="text-gray-800 font-medium">{{ datos.nombreCompleto }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">Correo</dt>
+          <dd class="text-gray-800 font-medium">{{ datos.email }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">Teléfono</dt>
+          <dd class="text-gray-800 font-medium">{{ datos.telefono ?? 'No registrado' }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">Rol</dt>
+          <dd class="text-gray-800 font-medium">{{ etiquetaRol() }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">Último ingreso</dt>
+          <dd class="text-gray-800 font-medium">{{ formatearFecha(datos.ultimoLogin) }}</dd>
+        </div>
+        <div>
+          <dt class="text-gray-500">Alertas por Telegram</dt>
+          <dd class="font-medium flex items-center gap-1.5" [class.text-emerald-600]="datos.telegramVinculado" [class.text-gray-400]="!datos.telegramVinculado">
+            @if (datos.telegramVinculado) {
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+              </svg>
+              Vinculadas
+            } @else {
+              Sin vincular — escríbele "hola" al bot de Telegram del colegio y comparte tu número para activarlas
+            }
+          </dd>
+        </div>
+      </dl>
+
+      <p class="text-xs text-gray-400 mt-4">
+        Cambiar tu nombre, correo o teléfono todavía no está disponible desde aquí — pide a un administrador que lo actualice.
+      </p>
+    </div>
+
+    <!-- Cambiar contraseña -->
+    <div class="bg-white rounded-xl border border-gray-100 p-5">
+      <h2 class="font-semibold text-gray-800 mb-1">Cambiar contraseña</h2>
+      <p class="text-sm text-gray-500 mb-4">
+        Al menos 10 caracteres, con mayúscula, minúscula, número y símbolo.
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="guardarPassword()" class="flex flex-col gap-4">
+
+        <div>
+          <label class="text-sm font-medium text-gray-700">Contraseña actual</label>
+          <div class="relative mt-1.5">
+            <input
+              [type]="mostrarPasswordActual() ? 'text' : 'password'"
+              formControlName="passwordActual"
+              class="w-full rounded-lg border border-gray-300 pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-teal"
+            />
+            <button type="button" (click)="alternarPasswordActual()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+            </button>
+          </div>
+          @if (form.controls.passwordActual.invalid && form.controls.passwordActual.touched) {
+            <p class="text-xs text-red-500 mt-1">Ingresa tu contraseña actual.</p>
+          }
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700">Contraseña nueva</label>
+          <div class="relative mt-1.5">
+            <input
+              [type]="mostrarPasswordNueva() ? 'text' : 'password'"
+              formControlName="passwordNueva"
+              class="w-full rounded-lg border border-gray-300 pl-4 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-brand-teal"
+            />
+            <button type="button" (click)="alternarPasswordNueva()" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+            </button>
+          </div>
+          @if (form.controls.passwordNueva.invalid && form.controls.passwordNueva.touched) {
+            <p class="text-xs text-red-500 mt-1">Debe tener al menos 10 caracteres, mayúscula, minúscula, número y símbolo.</p>
+          }
+        </div>
+
+        <div>
+          <label class="text-sm font-medium text-gray-700">Confirmar contraseña nueva</label>
+          <input
+            type="password"
+            formControlName="confirmarPassword"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 mt-1.5 focus:outline-none focus:ring-2 focus:ring-brand-teal"
+          />
+          @if (form.errors?.['noCoinciden'] && form.controls.confirmarPassword.touched) {
+            <p class="text-xs text-red-500 mt-1">Las contraseñas no coinciden.</p>
+          }
+        </div>
+
+        @if (errorPassword()) {
+          <p class="text-sm text-red-500 bg-red-50 rounded-lg px-3 py-2">{{ errorPassword() }}</p>
+        }
+
+        @if (exitoPassword()) {
+          <p class="text-sm text-emerald-600 bg-emerald-50 rounded-lg px-3 py-2">
+            Contraseña actualizada correctamente.
+            @if (cambioForzado()) {
+              Te estamos llevando al inicio...
+            }
+          </p>
+        }
+
+        <button
+          type="submit"
+          [disabled]="guardando()"
+          class="self-start flex items-center justify-center gap-2 bg-gradient-to-r from-brand-teal to-brand-navy text-white font-medium rounded-lg px-5 py-2.5 transition-opacity disabled:opacity-60"
+        >
+          {{ guardando() ? 'Guardando...' : 'Cambiar contraseña' }}
+        </button>
+
+      </form>
+    </div>
+
+  }
+
+</div>

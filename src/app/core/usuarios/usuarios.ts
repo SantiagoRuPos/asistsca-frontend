@@ -56,6 +56,23 @@ export interface UsuarioRegistrado {
   motivoFalloEnvio?: string;
 }
 
+export interface MiPerfil {
+  id: string;
+  nombreCompleto: string;
+  email: string;
+  telefono: string | null;
+  rol: { nombre: RolUsuario };
+  estado: { codigo: CodigoEstadoUsuario; nombre: string };
+  debeCambiarPassword: boolean;
+  telegramVinculado: boolean;
+  ultimoLogin: string | null;
+}
+
+export interface CambiarPassword {
+  passwordActual: string;
+  passwordNueva: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UsuariosService {
   private readonly http = inject(HttpClient);
@@ -85,5 +102,15 @@ export class UsuariosService {
 
   desactivar(id: string): Observable<unknown> {
     return this.http.patch(`${this.baseUrl}/${id}/desactivar`, {});
+  }
+
+  // ---------- Mi perfil (cualquier rol, sobre su propia cuenta) ----------
+
+  obtenerMiPerfil(): Observable<MiPerfil> {
+    return this.http.get<MiPerfil>(`${this.baseUrl}/mi-perfil`);
+  }
+
+  cambiarMiPassword(dto: CambiarPassword): Observable<{ mensaje: string }> {
+    return this.http.patch<{ mensaje: string }>(`${this.baseUrl}/mi-perfil/password`, dto);
   }
 }

@@ -40,6 +40,9 @@ export interface TarjetaNfc {
   uidTarjeta: string;
   tipoTitular: TipoTitularTarjeta;
   estado: { codigo: string; nombre: string };
+  estudiante: { id: string; nombres: string; apellidos: string; numeroDocumento: string } | null;
+  profesor: { id: string; nombres: string; apellidos: string; numeroDocumento: string } | null;
+  fechaAsignacion: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -57,5 +60,9 @@ export class NfcService {
 
   asignarTarjeta(dto: AsignarTarjeta): Observable<TarjetaNfc> {
     return this.http.post<TarjetaNfc>(`${this.baseUrl}/tarjetas`, dto);
+  }
+
+  listarTarjetas(): Observable<TarjetaNfc[]> {
+    return this.http.get<TarjetaNfc[]>(`${this.baseUrl}/tarjetas`);
   }
 }

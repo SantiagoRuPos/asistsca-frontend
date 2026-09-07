@@ -108,7 +108,25 @@
                     </span>
                   }
                 </td>
-                <td class="px-5 py-3 text-gray-600">{{ formatearFechaHora(lector.ultimaConexion) }}</td>
+                <td class="px-5 py-3">
+                  @if (sinSenalPorId().get(lector.id)) {
+                    <span
+                      class="inline-flex items-center gap-2 text-red-600 font-medium"
+                      title="Sin comunicación con este lector hace más de 2 minutos"
+                    >
+                      <span class="relative flex h-2.5 w-2.5 shrink-0">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                      </span>
+                      {{ formatearFechaHora(lector.ultimaConexion) }}
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-2 text-gray-600">
+                      <span class="w-2 h-2 rounded-full bg-green-500 shrink-0"></span>
+                      {{ formatearFechaHora(lector.ultimaConexion) }}
+                    </span>
+                  }
+                </td>
               </tr>
             }
           </tbody>
@@ -381,7 +399,7 @@
           <input type="password" formControlName="accessToken" placeholder="Token de acceso de Meta" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-sm text-gray-600 mb-1.5">Versión de API</label>
             <input type="text" formControlName="apiVersion" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
@@ -392,7 +410,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-sm text-gray-600 mb-1.5">Plantilla entrada</label>
             <input type="text" formControlName="plantillaEntrada" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />

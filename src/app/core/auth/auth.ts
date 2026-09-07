@@ -8,6 +8,8 @@ export interface UsuarioSesion {
   sub: string;
   email: string;
   rol: string;
+  nombreCompleto: string;
+  debeCambiarPassword: boolean;
 }
 
 interface RespuestaTokens {
@@ -140,9 +142,26 @@ export class AuthService {
       const payloadBase64 = accessToken.split('.')[1];
       const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
       const payload = JSON.parse(payloadJson);
-      return { sub: payload.sub, email: payload.email, rol: payload.rol };
+      return {
+        sub: payload.sub,
+        email: payload.email,
+        rol: payload.rol,
+        nombreCompleto: payload.nombreCompleto ?? payload.email,
+        debeCambiarPassword: payload.debeCambiarPassword === true,
+      };
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Se llama desde "Mi perfil" justo después de cambiar la contraseña con
+   * éxito, para que el guard de cambio obligatorio deje de redirigir sin
+   * esperar a que el access token actual expire y se renueve (hasta 15
+   * minutos) — el backend ya no exige el cambio, pero el token en memoria
+   * todavía lo dice hasta el próximo refresh.
+   */
+  marcarPasswordActualizada(): void {
+    this.usuario.update((actual) => (actual ? { ...actual, debeCambiarPassword: false } : actual));
   }
 }

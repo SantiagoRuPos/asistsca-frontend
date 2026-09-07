@@ -89,10 +89,77 @@ export interface RegistrarEstudianteCompleto {
   acudiente: DatosAcudiente;
 }
 
+export interface CrearProfesor {
+  nombres: string;
+  apellidos: string;
+  numeroDocumento: string;
+  email: string;
+  telefono?: string;
+}
+
+export interface ProfesorRegistrado {
+  profesor: { id: string; nombres: string; apellidos: string; numeroDocumento: string; email: string };
+  usuario: { email: string };
+  correoEnviado: boolean;
+  passwordTemporal?: string;
+  motivoFalloEnvio?: string;
+}
+
 export interface EstudianteRegistradoRespuesta {
   estudiante: { id: string; nombres: string; apellidos: string };
   matricula: { id: string; cursoId: string; curso: string; anioLectivo: number };
   acudiente: { id: string; nombres: string; apellidos: string };
+}
+
+export interface EstudianteVinculadoAcudiente {
+  id: string;
+  nombres: string;
+  apellidos: string;
+  esContactoNotificacion: boolean;
+}
+
+export interface AcudienteListado {
+  id: string;
+  nombres: string;
+  apellidos: string;
+  parentesco: string;
+  telefonoWhatsapp: string;
+  email: string | null;
+  numeroDocumento: string | null;
+  estudiantes: EstudianteVinculadoAcudiente[];
+}
+
+export interface ListaAcudientes {
+  datos: AcudienteListado[];
+  total: number;
+  pagina: number;
+  limite: number;
+  totalPaginas: number;
+}
+
+export interface FiltrosAcudientes {
+  q?: string;
+  pagina?: number;
+  limite?: number;
+}
+
+export interface CrearAcudiente {
+  nombre: string;
+  apellidos: string;
+  parentesco: 'padre' | 'madre' | 'tutor' | 'otro';
+  telefonoWhatsapp: string;
+  email?: string;
+  numeroDocumento?: string;
+  estudianteId?: string;
+}
+
+export interface ActualizarAcudiente {
+  nombre?: string;
+  apellidos?: string;
+  parentesco?: 'padre' | 'madre' | 'tutor' | 'otro';
+  telefonoWhatsapp?: string;
+  email?: string;
+  numeroDocumento?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -124,5 +191,43 @@ export class AcademicoService {
 
   registrarEstudianteCompleto(dto: RegistrarEstudianteCompleto): Observable<EstudianteRegistradoRespuesta> {
     return this.http.post<EstudianteRegistradoRespuesta>(`${this.baseUrl}/estudiantes/completo`, dto);
+  }
+
+  // Usado desde la pantalla Usuarios cuando se elige el rol "Profesor" en
+  // "Nuevo usuario": crea el registro académico del profesor y su cuenta de
+  // acceso (rol profesor) en un solo paso, con contraseña temporal generada
+  // y enviada por correo — igual que UsuariosService.registrar() para
+  // admin/rector/coordinador.
+  crearProfesor(dto: CrearProfesor): Observable<ProfesorRegistrado> {
+    return this.http.post<ProfesorRegistrado>(`${this.baseUrl}/profesores`, dto);
+  }
+
+  listarAcudientes(filtros: FiltrosAcudientes): Observable<ListaAcudientes> {
+    let params = new HttpParams();
+    for (const [clave, valor] of Object.entries(filtros)) {
+      if (valor !== undefined && valor !== null && valor !== '') {
+        params = params.set(clave, String(valor));
+      }
+    }
+    return this.http.get<ListaAcudientes>(`${this.baseUrl}/acudientes`, { params });
+  }
+
+  crearAcudiente(dto: CrearAcudiente): Observable<{ id: string; nombres: string; apellidos: string }> {
+    return this.http.post<{ id: string; nombres: string; apellidos: string }>(`${this.baseUrl}/acudientes`, dto);
+  }
+
+  actualizarAcudiente(id: string, dto: ActualizarAcudiente): Observable<{ id: string; nombres: string; apellidos: string }> {
+    return this.http.patch<{ id: string; nombres: string; apellidos: string }>(`${this.baseUrl}/acudientes/${id}`, dto);
+  }
+
+  actualizarContactoNotificacion(
+    estudianteId: string,
+    acudienteId: string,
+    esContactoNotificacion: boolean,
+  ): Observable<{ estudianteId: string; acudienteId: string; esContactoNotificacion: boolean }> {
+    return this.http.patch<{ estudianteId: string; acudienteId: string; esContactoNotificacion: boolean }>(
+      `${this.baseUrl}/estudiantes/${estudianteId}/acudientes/${acudienteId}/contacto`,
+      { esContactoNotificacion },
+    );
   }
 }
