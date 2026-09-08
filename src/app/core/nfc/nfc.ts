@@ -35,6 +35,10 @@ export interface AsignarTarjeta {
   profesorId?: string;
 }
 
+export interface CambiarTarjetaEstudiante {
+  uidTarjeta: string;
+}
+
 export interface TarjetaNfc {
   id: string;
   uidTarjeta: string;
@@ -64,5 +68,9 @@ export class NfcService {
 
   listarTarjetas(): Observable<TarjetaNfc[]> {
     return this.http.get<TarjetaNfc[]>(`${this.baseUrl}/tarjetas`);
+  }
+
+  cambiarTarjetaEstudiante(estudianteId: string, dto: CambiarTarjetaEstudiante): Observable<TarjetaNfc> {
+    return this.http.patch<TarjetaNfc>(`${this.baseUrl}/tarjetas/estudiante/${estudianteId}`, dto);
   }
 }

@@ -399,25 +399,35 @@
           <input type="password" formControlName="accessToken" placeholder="Token de acceso de Meta" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label class="block text-sm text-gray-600 mb-1.5">Versión de API</label>
-            <input type="text" formControlName="apiVersion" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
-          </div>
-          <div>
-            <label class="block text-sm text-gray-600 mb-1.5">Idioma plantilla</label>
-            <input type="text" formControlName="idiomaPlantilla" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
-          </div>
+        <div>
+          <label class="block text-sm text-gray-600 mb-1.5">Versión de API</label>
+          <input type="text" formControlName="apiVersion" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
         </div>
 
+        <!-- Cada plantilla (entrada/salida) puede quedar aprobada en Meta con
+             su propio idioma, así que cada una lleva su propio campo de
+             idioma al lado, en vez de un único "Idioma plantilla" compartido
+             (eso causó un envío roto: la de salida quedó en inglés y la de
+             entrada en español, y el sistema solo tenía dónde guardar uno). -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-sm text-gray-600 mb-1.5">Plantilla entrada</label>
             <input type="text" formControlName="plantillaEntrada" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
           </div>
           <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Idioma plantilla entrada</label>
+            <input type="text" formControlName="idiomaPlantillaEntrada" placeholder="es_CO" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
             <label class="block text-sm text-gray-600 mb-1.5">Plantilla salida</label>
             <input type="text" formControlName="plantillaSalida" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1.5">Idioma plantilla salida</label>
+            <input type="text" formControlName="idiomaPlantillaSalida" placeholder="es_CO" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
           </div>
         </div>
 

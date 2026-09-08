@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   AsistenciaService,
@@ -69,6 +69,9 @@ export class AsistenciasComponent {
   protected readonly mostrarModalManual = signal(false);
   protected readonly guardandoManual = signal(false);
   protected readonly errorManual = signal<string | null>(null);
+
+  protected readonly menuAbiertoId = signal<string | null>(null);
+  protected readonly accionEnCurso = signal<string | null>(null);
 
   protected readonly formularioManual = this.fb.group({
     estudianteId: ['', Validators.required],
@@ -185,6 +188,45 @@ export class AsistenciasComponent {
 
   cerrarModalManual(): void {
     this.mostrarModalManual.set(false);
+  }
+
+  @HostListener('document:click')
+  cerrarMenuAlHacerClicFuera(): void {
+    this.menuAbiertoId.set(null);
+  }
+
+  toggleMenu(registroId: string, evento: Event): void {
+    evento.stopPropagation();
+    this.menuAbiertoId.update((actual) => (actual === registroId ? null : registroId));
+  }
+
+  // Igual que marcarEvadido() en curso-detalle.ts — mismo endpoint
+  // (POST /asistencia/diaria/manual con tipoRegistro='evadido'), pero desde
+  // el menú "..." de esta tabla no hace falta abrir el modal completo de
+  // registro manual, ya se sabe a qué estudiante y qué fecha corresponde la
+  // fila.
+  marcarEvadido(registroId: string, estudianteId: string): void {
+    this.menuAbiertoId.set(null);
+    this.accionEnCurso.set(registroId);
+
+    this.asistenciaService
+      .registrarManual({
+        estudianteId,
+        tipoRegistro: 'evadido',
+        fecha: this.fecha(),
+        observacion: 'Marcado como evadido desde la pantalla de Asistencias.',
+      })
+      .subscribe({
+        next: () => {
+          this.accionEnCurso.set(null);
+          this.cargarResumen();
+          this.cargarLista();
+        },
+        error: (error) => {
+          this.accionEnCurso.set(null);
+          this.error.set(error.error?.message ?? 'No se pudo marcar al estudiante como evadido.');
+        },
+      });
   }
 
   guardarRegistroManual(): void {

@@ -13,7 +13,8 @@ export interface ConfiguracionWhatsapp {
   apiVersion: string;
   plantillaEntrada: string;
   plantillaSalida: string;
-  idiomaPlantilla: string;
+  idiomaPlantillaEntrada: string;
+  idiomaPlantillaSalida: string;
   fechaActualizacion: string;
 }
 
@@ -24,7 +25,8 @@ export interface ActualizarConfiguracionWhatsapp {
   apiVersion?: string;
   plantillaEntrada?: string;
   plantillaSalida?: string;
-  idiomaPlantilla?: string;
+  idiomaPlantillaEntrada?: string;
+  idiomaPlantillaSalida?: string;
 }
 
 export interface ResultadoPruebaConexion {

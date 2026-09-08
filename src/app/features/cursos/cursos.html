@@ -11,16 +11,18 @@
     </div>
   </div>
 
-  <button
-    type="button"
-    title="Próximamente disponible: falta el listado de profesores para elegir director de curso"
-    class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium opacity-60 cursor-not-allowed"
-  >
-    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-    </svg>
-    Nuevo curso
-  </button>
+  @if (puedeGestionar()) {
+    <button
+      type="button"
+      (click)="abrirModalCrear()"
+      class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark transition-colors"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Nuevo curso
+    </button>
+  }
 </div>
 
 @if (error()) {
@@ -204,13 +206,38 @@
                       <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     </svg>
                   </button>
-                  <button type="button" title="Próximamente disponible" class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-400">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <circle cx="12" cy="5" r="1.5" />
-                      <circle cx="12" cy="12" r="1.5" />
-                      <circle cx="12" cy="19" r="1.5" />
-                    </svg>
-                  </button>
+                  @if (puedeGestionar()) {
+                    <div class="relative">
+                      <button
+                        type="button"
+                        (click)="toggleMenu(curso.id, $event)"
+                        class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-400 hover:text-gray-600"
+                      >
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="5" r="1.5" />
+                          <circle cx="12" cy="12" r="1.5" />
+                          <circle cx="12" cy="19" r="1.5" />
+                        </svg>
+                      </button>
+                      @if (menuAbiertoId() === curso.id) {
+                        <div
+                          (click)="$event.stopPropagation()"
+                          class="absolute right-0 mt-1 w-56 bg-white rounded-lg border border-gray-100 shadow-lg z-10 py-1"
+                        >
+                          <button
+                            type="button"
+                            (click)="abrirCambiarDirector(curso)"
+                            class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                            </svg>
+                            Cambiar director de grupo
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
                 </div>
               </td>
             </tr>
@@ -252,3 +279,114 @@
     </div>
   }
 </div>
+
+<!-- Modal: nuevo curso -->
+@if (mostrarModalCrear()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-900">Nuevo curso</h2>
+        <button type="button" (click)="cerrarModalCrear()" class="text-gray-400">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <form [formGroup]="formularioCrear" (ngSubmit)="guardarCrear()" class="flex flex-col gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Nombre del curso</label>
+          <input type="text" formControlName="nombre" placeholder="Ej. 5A Primaria" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Año lectivo</label>
+            <input type="number" formControlName="anioLectivo" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Jornada</label>
+            <select formControlName="jornada" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+              @for (j of jornadas; track j.valor) {
+                <option [value]="j.valor">{{ j.etiqueta }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Director de grupo</label>
+          <select formControlName="profesorDirectorId" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+            <option value="" disabled>Selecciona un profesor</option>
+            @for (profesor of profesores(); track profesor.id) {
+              <option [value]="profesor.id" [disabled]="!!profesor.cursoDirigido">
+                {{ profesor.nombres }} {{ profesor.apellidos }}{{ profesor.cursoDirigido ? ' — ya dirige ' + profesor.cursoDirigido.nombre : '' }}
+              </option>
+            }
+          </select>
+          <p class="text-xs text-gray-400 mt-1">Un profesor solo puede dirigir un curso a la vez, por eso los que ya tienen uno aparecen deshabilitados.</p>
+        </div>
+
+        @if (errorCrear()) {
+          <p class="text-sm text-red-500">{{ errorCrear() }}</p>
+        }
+
+        <div class="flex items-center justify-end gap-3 mt-2">
+          <button type="button" (click)="cerrarModalCrear()" class="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
+          <button type="submit" [disabled]="guardandoCrear()" class="px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60">
+            {{ guardandoCrear() ? 'Creando...' : 'Crear curso' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal: cambiar director de grupo -->
+@if (cursoCambiandoDirector()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-bold text-gray-900">Cambiar director de grupo</h2>
+        <button type="button" (click)="cerrarCambiarDirector()" class="text-gray-400">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-sm text-gray-500 mb-4">{{ cursoCambiandoDirector()?.nombre }}</p>
+
+      <form [formGroup]="formularioCambiarDirector" (ngSubmit)="guardarCambiarDirector()" class="flex flex-col gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Nuevo director de grupo</label>
+          <select formControlName="profesorDirectorId" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+            @for (profesor of profesores(); track profesor.id) {
+              <option
+                [value]="profesor.id"
+                [disabled]="!!profesor.cursoDirigido && profesor.cursoDirigido.id !== cursoCambiandoDirector()?.id"
+              >
+                {{ profesor.nombres }} {{ profesor.apellidos }}{{
+                  profesor.cursoDirigido && profesor.cursoDirigido.id !== cursoCambiandoDirector()?.id
+                    ? ' — ya dirige ' + profesor.cursoDirigido.nombre
+                    : ''
+                }}
+              </option>
+            }
+          </select>
+        </div>
+
+        @if (errorDirector()) {
+          <p class="text-sm text-red-500">{{ errorDirector() }}</p>
+        }
+
+        <div class="flex items-center justify-end gap-3 mt-2">
+          <button type="button" (click)="cerrarCambiarDirector()" class="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
+          <button type="submit" [disabled]="guardandoDirector()" class="px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60">
+            {{ guardandoDirector() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

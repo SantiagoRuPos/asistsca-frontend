@@ -199,26 +199,59 @@
                   </span>
                 }
               </td>
-              <td class="px-5 py-3">
+              <td class="px-5 py-3" (click)="$event.stopPropagation()">
                 <div class="flex items-center justify-end gap-1.5">
-                  <button type="button" title="Próximamente disponible" class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-400">
+                  <button type="button" (click)="abrirVerCarnet(estudiante.id)" title="Ver carnet" class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-500 hover:text-brand-teal hover:border-brand-teal">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                       <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     </svg>
                   </button>
-                  <button type="button" title="Próximamente disponible" class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-400">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.932Zm0 0L19.5 7.125" />
-                    </svg>
-                  </button>
-                  <button type="button" title="Próximamente disponible" class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-400">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <circle cx="12" cy="5" r="1.5" />
-                      <circle cx="12" cy="12" r="1.5" />
-                      <circle cx="12" cy="19" r="1.5" />
-                    </svg>
-                  </button>
+                  @if (puedeGestionar()) {
+                    <button type="button" (click)="abrirEditar(estudiante.id)" title="Editar estudiante" class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-500 hover:text-brand-teal hover:border-brand-teal">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.932Zm0 0L19.5 7.125" />
+                      </svg>
+                    </button>
+                    <div class="relative">
+                      <button
+                        type="button"
+                        (click)="toggleMenu(estudiante.id, $event)"
+                        [disabled]="accionEnCurso() === estudiante.id"
+                        class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-400 hover:text-gray-600 disabled:opacity-60"
+                      >
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="5" r="1.5" />
+                          <circle cx="12" cy="12" r="1.5" />
+                          <circle cx="12" cy="19" r="1.5" />
+                        </svg>
+                      </button>
+                      @if (menuAbiertoId() === estudiante.id) {
+                        <div
+                          (click)="$event.stopPropagation()"
+                          class="absolute right-0 mt-1 w-52 bg-white rounded-lg border border-gray-100 shadow-lg z-10 py-1"
+                        >
+                          <button
+                            type="button"
+                            (click)="toggleActivo(estudiante)"
+                            class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
+                          >
+                            @if (estudiante.estado.codigo === 'activo') {
+                              <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                              </svg>
+                              Desactivar estudiante
+                            } @else {
+                              <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                              </svg>
+                              Activar estudiante
+                            }
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  }
                 </div>
               </td>
             </tr>
@@ -455,6 +488,232 @@
             </button>
           }
         </div>
+      }
+    </div>
+  </div>
+}
+
+<!-- Modal: ver carnet -->
+@if (cargandoDetalle() || errorDetalle() || estudianteViendo()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-sm p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-900">Carnet del estudiante</h2>
+        <button type="button" (click)="cerrarVerCarnet()" class="text-gray-400">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      @if (cargandoDetalle()) {
+        <p class="text-sm text-gray-400 text-center py-8">Cargando carnet...</p>
+      } @else if (errorDetalle()) {
+        <p class="text-sm text-red-500">{{ errorDetalle() }}</p>
+      } @else if (estudianteViendo(); as est) {
+        <div class="rounded-2xl bg-gradient-to-br from-brand-teal to-brand-teal-dark text-white p-5 shadow-lg">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-semibold uppercase tracking-wide opacity-80">AsistSCA</span>
+            @if (est.estado.codigo === 'activo') {
+              <span class="text-[10px] font-semibold uppercase tracking-wide bg-white/20 rounded-full px-2 py-0.5">Activo</span>
+            } @else {
+              <span class="text-[10px] font-semibold uppercase tracking-wide bg-white/20 rounded-full px-2 py-0.5">Inactivo</span>
+            }
+          </div>
+          <div class="flex items-center gap-3 mb-4">
+            <span class="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center text-lg font-bold shrink-0">
+              {{ iniciales(est.nombres, est.apellidos) }}
+            </span>
+            <div>
+              <p class="font-semibold leading-tight">{{ est.nombres }} {{ est.apellidos }}</p>
+              <p class="text-xs opacity-80">{{ est.tipoDocumento }} {{ est.numeroDocumento }}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <p class="opacity-70">Curso</p>
+              <p class="font-medium">{{ est.curso?.nombre ?? 'Sin curso' }}</p>
+            </div>
+            <div>
+              <p class="opacity-70">UID carnet</p>
+              <p class="font-medium font-mono">{{ est.tarjeta?.uidTarjeta ?? 'Sin carnet' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 text-sm text-gray-600">
+          <p class="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Acudiente</p>
+          @if (est.acudiente; as acud) {
+            <p>{{ acud.nombres }} {{ acud.apellidos }} &middot; {{ acud.telefonoWhatsapp }}</p>
+          } @else {
+            <p class="text-gray-400">Sin acudiente vinculado.</p>
+          }
+        </div>
+
+        <button type="button" (click)="cerrarVerCarnet()" class="w-full mt-5 px-4 py-2.5 rounded-lg bg-gray-100 text-gray-700 text-sm font-medium hover:bg-gray-200">
+          Cerrar
+        </button>
+      }
+    </div>
+  </div>
+}
+
+<!-- Modal: editar estudiante -->
+@if (cargandoEdicion() || errorEdicion() || estudianteEditando()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-900">Editar estudiante</h2>
+        <button type="button" (click)="cerrarEditar()" class="text-gray-400">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      @if (cargandoEdicion()) {
+        <p class="text-sm text-gray-400 text-center py-8">Cargando información...</p>
+      } @else if (errorEdicion()) {
+        <p class="text-sm text-red-500">{{ errorEdicion() }}</p>
+      } @else if (estudianteEditando(); as est) {
+        <div class="flex flex-col gap-6">
+
+          <form [formGroup]="formularioEditarDatos" (ngSubmit)="guardarDatosPersonales()" class="flex flex-col gap-3 pb-6 border-b border-gray-100">
+            <h3 class="text-sm font-semibold text-gray-700">Datos personales</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Nombres</label>
+                <input type="text" formControlName="nombres" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Apellidos</label>
+                <input type="text" formControlName="apellidos" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Tipo de documento</label>
+                <select formControlName="tipoDocumento" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+                  @for (tipo of tiposDocumento; track tipo) {
+                    <option [value]="tipo">{{ tipo }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Número de documento</label>
+                <input type="text" formControlName="numeroDocumento" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Fecha de nacimiento</label>
+                <input type="date" formControlName="fechaNacimiento" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-gray-500 mb-1">Estado</label>
+                <select formControlName="estadoCodigo" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+                  <option value="activo">Activo</option>
+                  <option value="inactivo">Inactivo</option>
+                </select>
+              </div>
+            </div>
+            @if (errorDatos()) {
+              <p class="text-sm text-red-500">{{ errorDatos() }}</p>
+            }
+            <button type="submit" [disabled]="guardandoDatos()" class="self-end px-4 py-2 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60">
+              {{ guardandoDatos() ? 'Guardando...' : 'Guardar datos' }}
+            </button>
+          </form>
+
+          <form [formGroup]="formularioEditarCurso" (ngSubmit)="guardarCurso()" class="flex flex-col gap-3 pb-6 border-b border-gray-100">
+            <h3 class="text-sm font-semibold text-gray-700">Curso</h3>
+            <p class="text-xs text-gray-400">Curso actual: {{ est.curso?.nombre ?? 'Sin curso asignado' }}</p>
+            <div class="flex items-end gap-3 flex-wrap">
+              <div class="flex-1 min-w-[10rem]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">Nuevo curso</label>
+                <select formControlName="cursoId" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+                  <option value="" disabled>Selecciona un curso</option>
+                  @for (curso of cursos(); track curso.id) {
+                    <option [value]="curso.id">{{ curso.nombre }}</option>
+                  }
+                </select>
+              </div>
+              <button type="submit" [disabled]="guardandoCurso()" class="px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60">
+                {{ guardandoCurso() ? 'Cambiando...' : 'Cambiar curso' }}
+              </button>
+            </div>
+            <p class="text-xs text-gray-400">Se crea una matrícula nueva; la matrícula anterior queda como historial.</p>
+            @if (errorCursoEdicion()) {
+              <p class="text-sm text-red-500">{{ errorCursoEdicion() }}</p>
+            }
+          </form>
+
+          <form [formGroup]="formularioEditarCarnet" (ngSubmit)="guardarCarnet()" class="flex flex-col gap-3 pb-6 border-b border-gray-100">
+            <h3 class="text-sm font-semibold text-gray-700">Carnet NFC</h3>
+            <p class="text-xs text-gray-400">UID actual: {{ est.tarjeta?.uidTarjeta ?? 'Sin carnet asignado' }}</p>
+            <div class="flex items-end gap-3 flex-wrap">
+              <div class="flex-1 min-w-[10rem]">
+                <label class="block text-xs font-medium text-gray-500 mb-1">{{ est.tarjeta ? 'Nuevo UID' : 'UID del carnet' }}</label>
+                <input type="text" formControlName="uidTarjeta" placeholder="Ej. 04A3B2C1" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+              </div>
+              <button type="submit" [disabled]="guardandoCarnet()" class="px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60">
+                {{ guardandoCarnet() ? 'Guardando...' : (est.tarjeta ? 'Cambiar carnet' : 'Asignar carnet') }}
+              </button>
+            </div>
+            @if (est.tarjeta) {
+              <p class="text-xs text-gray-400">El carnet anterior se desactiva y queda como historial; se crea uno nuevo con el UID indicado.</p>
+            }
+            @if (errorCarnetEdicion()) {
+              <p class="text-sm text-red-500">{{ errorCarnetEdicion() }}</p>
+            }
+          </form>
+
+          <div class="flex flex-col gap-3">
+            <h3 class="text-sm font-semibold text-gray-700">Datos del acudiente</h3>
+            @if (est.acudiente) {
+              <form [formGroup]="formularioEditarAcudiente" (ngSubmit)="guardarAcudienteEdicion()" class="flex flex-col gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Nombres</label>
+                    <input type="text" formControlName="nombres" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Apellidos</label>
+                    <input type="text" formControlName="apellidos" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Parentesco</label>
+                    <select formControlName="parentesco" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+                      @for (p of parentescos; track p.valor) {
+                        <option [value]="p.valor">{{ p.etiqueta }}</option>
+                      }
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">WhatsApp</label>
+                    <input type="text" formControlName="telefonoWhatsapp" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Correo (opcional)</label>
+                    <input type="email" formControlName="email" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-gray-500 mb-1">Documento (opcional)</label>
+                    <input type="text" formControlName="numeroDocumento" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm" />
+                  </div>
+                </div>
+                @if (errorAcudienteEdicion()) {
+                  <p class="text-sm text-red-500">{{ errorAcudienteEdicion() }}</p>
+                }
+                <button type="submit" [disabled]="guardandoAcudienteEdicion()" class="self-end px-4 py-2 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60">
+                  {{ guardandoAcudienteEdicion() ? 'Guardando...' : 'Guardar acudiente' }}
+                </button>
+              </form>
+            } @else {
+              <p class="text-sm text-gray-400">Este estudiante no tiene un acudiente vinculado todavía. Ve a la pantalla Acudientes para vincular uno.</p>
+            }
+          </div>
+        </div>
+
+        <button type="button" (click)="cerrarEditar()" class="w-full mt-6 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 border border-gray-200">
+          Cerrar
+        </button>
       }
     </div>
   </div>

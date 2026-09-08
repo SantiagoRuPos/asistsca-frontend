@@ -13,6 +13,26 @@ export interface Curso {
   cantidadEstudiantes: number;
 }
 
+export interface ProfesorListado {
+  id: string;
+  nombres: string;
+  apellidos: string;
+  numeroDocumento: string;
+  estado: { codigo: string; nombre: string };
+  cursoDirigido: { id: string; nombre: string } | null;
+}
+
+export interface CrearCurso {
+  nombre: string;
+  anioLectivo?: number;
+  profesorDirectorId: string;
+  jornada?: 'mañana' | 'tarde' | 'unica';
+}
+
+export interface CambiarDirectorCurso {
+  profesorDirectorId: string;
+}
+
 export interface EstudianteMatriculado {
   id: string;
   nombres: string;
@@ -162,6 +182,40 @@ export interface ActualizarAcudiente {
   numeroDocumento?: string;
 }
 
+export interface EstudianteDetalle {
+  id: string;
+  nombres: string;
+  apellidos: string;
+  tipoDocumento: string;
+  numeroDocumento: string;
+  fechaNacimiento: string;
+  estado: { codigo: string; nombre: string };
+  curso: { id: string; nombre: string } | null;
+  tarjeta: { id: string; uidTarjeta: string } | null;
+  acudiente: {
+    id: string;
+    nombres: string;
+    apellidos: string;
+    parentesco: string;
+    telefonoWhatsapp: string;
+    email: string | null;
+    numeroDocumento: string | null;
+  } | null;
+}
+
+export interface ActualizarEstudiante {
+  nombres?: string;
+  apellidos?: string;
+  tipoDocumento?: string;
+  numeroDocumento?: string;
+  fechaNacimiento?: string;
+  estadoCodigo?: 'activo' | 'inactivo';
+}
+
+export interface CambiarCursoEstudiante {
+  cursoId: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AcademicoService {
   private readonly http = inject(HttpClient);
@@ -169,6 +223,18 @@ export class AcademicoService {
 
   listarCursos(): Observable<Curso[]> {
     return this.http.get<Curso[]>(`${this.baseUrl}/cursos`);
+  }
+
+  listarProfesores(): Observable<ProfesorListado[]> {
+    return this.http.get<ProfesorListado[]>(`${this.baseUrl}/profesores`);
+  }
+
+  crearCurso(dto: CrearCurso): Observable<Curso> {
+    return this.http.post<Curso>(`${this.baseUrl}/cursos`, dto);
+  }
+
+  cambiarDirectorCurso(cursoId: string, dto: CambiarDirectorCurso): Observable<Curso> {
+    return this.http.patch<Curso>(`${this.baseUrl}/cursos/${cursoId}/director`, dto);
   }
 
   listarEstudiantesMatriculados(): Observable<EstudianteMatriculado[]> {
@@ -229,5 +295,17 @@ export class AcademicoService {
       `${this.baseUrl}/estudiantes/${estudianteId}/acudientes/${acudienteId}/contacto`,
       { esContactoNotificacion },
     );
+  }
+
+  obtenerEstudiante(id: string): Observable<EstudianteDetalle> {
+    return this.http.get<EstudianteDetalle>(`${this.baseUrl}/estudiantes/${id}`);
+  }
+
+  actualizarEstudiante(id: string, dto: ActualizarEstudiante): Observable<EstudianteDetalle> {
+    return this.http.patch<EstudianteDetalle>(`${this.baseUrl}/estudiantes/${id}`, dto);
+  }
+
+  cambiarCursoEstudiante(id: string, dto: CambiarCursoEstudiante): Observable<{ id: string }> {
+    return this.http.patch<{ id: string }>(`${this.baseUrl}/estudiantes/${id}/curso`, dto);
   }
 }

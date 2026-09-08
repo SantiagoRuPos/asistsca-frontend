@@ -1,6 +1,8 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { AcademicoService, Curso } from '../../core/academico/academico';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AcademicoService, Curso, ProfesorListado } from '../../core/academico/academico';
+import { AuthService } from '../../core/auth/auth';
 
 interface CursoConDerivados extends Curso {
   grado: string;
@@ -10,11 +12,48 @@ interface CursoConDerivados extends Curso {
 @Component({
   selector: 'app-cursos',
   standalone: true,
+  imports: [ReactiveFormsModule],
   templateUrl: './cursos.html',
 })
 export class CursosComponent {
   private readonly academicoService = inject(AcademicoService);
+  private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+
+  protected readonly puedeGestionar = computed(() => {
+    const rol = this.authService.usuario()?.rol;
+    return rol === 'admin' || rol === 'rector' || rol === 'coordinador';
+  });
+
+  protected readonly jornadas: { valor: 'mañana' | 'tarde' | 'unica'; etiqueta: string }[] = [
+    { valor: 'mañana', etiqueta: 'Mañana' },
+    { valor: 'tarde', etiqueta: 'Tarde' },
+    { valor: 'unica', etiqueta: 'Única' },
+  ];
+
+  protected readonly profesores = signal<ProfesorListado[]>([]);
+
+  protected readonly menuAbiertoId = signal<string | null>(null);
+
+  protected readonly mostrarModalCrear = signal(false);
+  protected readonly guardandoCrear = signal(false);
+  protected readonly errorCrear = signal<string | null>(null);
+
+  protected readonly formularioCrear = this.fb.group({
+    nombre: ['', [Validators.required, Validators.maxLength(40)]],
+    anioLectivo: [new Date().getFullYear(), Validators.required],
+    profesorDirectorId: ['', Validators.required],
+    jornada: this.fb.nonNullable.control<'mañana' | 'tarde' | 'unica'>('unica'),
+  });
+
+  protected readonly cursoCambiandoDirector = signal<CursoConDerivados | null>(null);
+  protected readonly guardandoDirector = signal(false);
+  protected readonly errorDirector = signal<string | null>(null);
+
+  protected readonly formularioCambiarDirector = this.fb.group({
+    profesorDirectorId: ['', Validators.required],
+  });
 
   protected readonly anioActual = new Date().getFullYear();
   protected readonly limite = 5;
@@ -88,6 +127,103 @@ export class CursosComponent {
 
   constructor() {
     this.cargar();
+    this.academicoService.listarProfesores().subscribe({
+      next: (profesores) => this.profesores.set(profesores),
+      error: () => {},
+    });
+  }
+
+  @HostListener('document:click')
+  cerrarMenuAlHacerClicFuera(): void {
+    this.menuAbiertoId.set(null);
+  }
+
+  toggleMenu(cursoId: string, evento: Event): void {
+    evento.stopPropagation();
+    this.menuAbiertoId.update((actual) => (actual === cursoId ? null : cursoId));
+  }
+
+  cerrarMenu(): void {
+    this.menuAbiertoId.set(null);
+  }
+
+  abrirModalCrear(): void {
+    this.errorCrear.set(null);
+    this.formularioCrear.reset({ anioLectivo: this.anioActual, jornada: 'unica', profesorDirectorId: '' });
+    this.mostrarModalCrear.set(true);
+  }
+
+  cerrarModalCrear(): void {
+    this.mostrarModalCrear.set(false);
+  }
+
+  guardarCrear(): void {
+    if (this.formularioCrear.invalid) {
+      this.formularioCrear.markAllAsTouched();
+      return;
+    }
+
+    this.guardandoCrear.set(true);
+    this.errorCrear.set(null);
+
+    const valores = this.formularioCrear.getRawValue();
+
+    this.academicoService
+      .crearCurso({
+        nombre: valores.nombre!.trim(),
+        anioLectivo: valores.anioLectivo ?? undefined,
+        profesorDirectorId: valores.profesorDirectorId!,
+        jornada: valores.jornada,
+      })
+      .subscribe({
+        next: () => {
+          this.guardandoCrear.set(false);
+          this.mostrarModalCrear.set(false);
+          this.cargar();
+        },
+        error: (error) => {
+          this.guardandoCrear.set(false);
+          this.errorCrear.set(error.error?.message ?? 'No se pudo crear el curso. Intenta de nuevo.');
+        },
+      });
+  }
+
+  abrirCambiarDirector(curso: CursoConDerivados): void {
+    this.menuAbiertoId.set(null);
+    this.errorDirector.set(null);
+    this.formularioCambiarDirector.reset({ profesorDirectorId: curso.director.id });
+    this.cursoCambiandoDirector.set(curso);
+  }
+
+  cerrarCambiarDirector(): void {
+    this.cursoCambiandoDirector.set(null);
+  }
+
+  guardarCambiarDirector(): void {
+    const curso = this.cursoCambiandoDirector();
+    if (!curso) return;
+
+    if (this.formularioCambiarDirector.invalid) {
+      this.formularioCambiarDirector.markAllAsTouched();
+      return;
+    }
+
+    this.guardandoDirector.set(true);
+    this.errorDirector.set(null);
+
+    const profesorDirectorId = this.formularioCambiarDirector.getRawValue().profesorDirectorId!;
+
+    this.academicoService.cambiarDirectorCurso(curso.id, { profesorDirectorId }).subscribe({
+      next: () => {
+        this.guardandoDirector.set(false);
+        this.cursoCambiandoDirector.set(null);
+        this.cargar();
+      },
+      error: (error) => {
+        this.guardandoDirector.set(false);
+        this.errorDirector.set(error.error?.message ?? 'No se pudo cambiar el director de grupo. Intenta de nuevo.');
+      },
+    });
   }
 
   actualizarBusqueda(valor: string): void {

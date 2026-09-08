@@ -1,8 +1,9 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   AcademicoService,
   Curso,
+  EstudianteDetalle,
   EstudianteRegistradoRespuesta,
   FiltrosEstudiantes,
   ListaEstudiantes,
@@ -81,6 +82,55 @@ export class EstudiantesComponent {
   protected readonly guardandoTarjeta = signal(false);
   protected readonly errorTarjeta = signal<string | null>(null);
   protected readonly tarjetaActivada = signal(false);
+
+  // Menú de acciones (los "..." de cada fila) y activar/desactivar rápido.
+  protected readonly menuAbiertoId = signal<string | null>(null);
+  protected readonly accionEnCurso = signal<string | null>(null);
+
+  // Modal "Ver carnet" (ojito): vista de solo lectura.
+  protected readonly estudianteViendo = signal<EstudianteDetalle | null>(null);
+  protected readonly cargandoDetalle = signal(false);
+  protected readonly errorDetalle = signal<string | null>(null);
+
+  // Modal "Editar estudiante" (lápiz): datos personales, curso, carnet y
+  // acudiente, cada sección con su propio guardado independiente.
+  protected readonly estudianteEditando = signal<EstudianteDetalle | null>(null);
+  protected readonly cargandoEdicion = signal(false);
+  protected readonly errorEdicion = signal<string | null>(null);
+
+  protected readonly guardandoDatos = signal(false);
+  protected readonly errorDatos = signal<string | null>(null);
+  protected readonly formularioEditarDatos = this.fb.group({
+    nombres: ['', [Validators.required, Validators.maxLength(120)]],
+    apellidos: ['', [Validators.required, Validators.maxLength(120)]],
+    tipoDocumento: ['TI', Validators.required],
+    numeroDocumento: ['', [Validators.required, Validators.maxLength(30)]],
+    fechaNacimiento: ['', Validators.required],
+    estadoCodigo: this.fb.nonNullable.control<'activo' | 'inactivo'>('activo', Validators.required),
+  });
+
+  protected readonly guardandoCurso = signal(false);
+  protected readonly errorCursoEdicion = signal<string | null>(null);
+  protected readonly formularioEditarCurso = this.fb.group({
+    cursoId: ['', Validators.required],
+  });
+
+  protected readonly guardandoCarnet = signal(false);
+  protected readonly errorCarnetEdicion = signal<string | null>(null);
+  protected readonly formularioEditarCarnet = this.fb.group({
+    uidTarjeta: ['', [Validators.required, Validators.maxLength(40)]],
+  });
+
+  protected readonly guardandoAcudienteEdicion = signal(false);
+  protected readonly errorAcudienteEdicion = signal<string | null>(null);
+  protected readonly formularioEditarAcudiente = this.fb.group({
+    nombres: ['', [Validators.required, Validators.maxLength(120)]],
+    apellidos: ['', [Validators.required, Validators.maxLength(120)]],
+    parentesco: this.fb.nonNullable.control<'padre' | 'madre' | 'tutor' | 'otro'>('padre', Validators.required),
+    telefonoWhatsapp: ['', [Validators.required, Validators.maxLength(30)]],
+    email: ['', Validators.email],
+    numeroDocumento: ['', Validators.maxLength(30)],
+  });
 
   constructor() {
     this.cargarResumen();
@@ -271,6 +321,228 @@ export class EstudiantesComponent {
 
   protected iniciales(nombres: string, apellidos: string): string {
     return `${nombres.charAt(0)}${apellidos.charAt(0)}`.toUpperCase();
+  }
+
+  @HostListener('document:click')
+  cerrarMenuAlHacerClicFuera(): void {
+    this.menuAbiertoId.set(null);
+  }
+
+  toggleMenu(estudianteId: string, evento: Event): void {
+    evento.stopPropagation();
+    this.menuAbiertoId.update((actual) => (actual === estudianteId ? null : estudianteId));
+  }
+
+  toggleActivo(estudiante: { id: string; estado: { codigo: string } }): void {
+    this.menuAbiertoId.set(null);
+    const nuevoEstado: 'activo' | 'inactivo' = estudiante.estado.codigo === 'activo' ? 'inactivo' : 'activo';
+    this.accionEnCurso.set(estudiante.id);
+
+    this.academicoService.actualizarEstudiante(estudiante.id, { estadoCodigo: nuevoEstado }).subscribe({
+      next: () => {
+        this.accionEnCurso.set(null);
+        this.cargarResumen();
+        this.cargarLista();
+      },
+      error: (error) => {
+        this.accionEnCurso.set(null);
+        this.error.set(error.error?.message ?? 'No se pudo actualizar el estado del estudiante.');
+      },
+    });
+  }
+
+  abrirVerCarnet(estudianteId: string): void {
+    this.menuAbiertoId.set(null);
+    this.errorDetalle.set(null);
+    this.cargandoDetalle.set(true);
+    this.estudianteViendo.set(null);
+
+    this.academicoService.obtenerEstudiante(estudianteId).subscribe({
+      next: (detalle) => {
+        this.cargandoDetalle.set(false);
+        this.estudianteViendo.set(detalle);
+      },
+      error: (error) => {
+        this.cargandoDetalle.set(false);
+        this.errorDetalle.set(error.error?.message ?? 'No se pudo cargar el carnet del estudiante.');
+      },
+    });
+  }
+
+  cerrarVerCarnet(): void {
+    this.estudianteViendo.set(null);
+  }
+
+  abrirEditar(estudianteId: string): void {
+    this.menuAbiertoId.set(null);
+    this.errorEdicion.set(null);
+    this.cargandoEdicion.set(true);
+    this.estudianteEditando.set(null);
+
+    this.academicoService.obtenerEstudiante(estudianteId).subscribe({
+      next: (detalle) => {
+        this.cargandoEdicion.set(false);
+        this.estudianteEditando.set(detalle);
+        this.errorDatos.set(null);
+        this.errorCursoEdicion.set(null);
+        this.errorCarnetEdicion.set(null);
+        this.errorAcudienteEdicion.set(null);
+
+        this.formularioEditarDatos.reset({
+          nombres: detalle.nombres,
+          apellidos: detalle.apellidos,
+          tipoDocumento: detalle.tipoDocumento,
+          numeroDocumento: detalle.numeroDocumento,
+          fechaNacimiento: detalle.fechaNacimiento?.slice(0, 10) ?? '',
+          estadoCodigo: (detalle.estado.codigo as 'activo' | 'inactivo') ?? 'activo',
+        });
+        this.formularioEditarCurso.reset({ cursoId: detalle.curso?.id ?? '' });
+        this.formularioEditarCarnet.reset({ uidTarjeta: '' });
+
+        if (detalle.acudiente) {
+          this.formularioEditarAcudiente.reset({
+            nombres: detalle.acudiente.nombres,
+            apellidos: detalle.acudiente.apellidos,
+            parentesco: (detalle.acudiente.parentesco as 'padre' | 'madre' | 'tutor' | 'otro') || 'otro',
+            telefonoWhatsapp: detalle.acudiente.telefonoWhatsapp,
+            email: detalle.acudiente.email ?? '',
+            numeroDocumento: detalle.acudiente.numeroDocumento ?? '',
+          });
+        }
+      },
+      error: (error) => {
+        this.cargandoEdicion.set(false);
+        this.errorEdicion.set(error.error?.message ?? 'No se pudo cargar la información del estudiante.');
+      },
+    });
+  }
+
+  cerrarEditar(): void {
+    this.estudianteEditando.set(null);
+    this.cargarResumen();
+    this.cargarLista();
+  }
+
+  guardarDatosPersonales(): void {
+    const estudiante = this.estudianteEditando();
+    if (!estudiante) return;
+
+    if (this.formularioEditarDatos.invalid) {
+      this.formularioEditarDatos.markAllAsTouched();
+      return;
+    }
+
+    this.guardandoDatos.set(true);
+    this.errorDatos.set(null);
+    const valores = this.formularioEditarDatos.getRawValue();
+
+    this.academicoService
+      .actualizarEstudiante(estudiante.id, {
+        nombres: valores.nombres!.trim(),
+        apellidos: valores.apellidos!.trim(),
+        tipoDocumento: valores.tipoDocumento!,
+        numeroDocumento: valores.numeroDocumento!.trim(),
+        fechaNacimiento: valores.fechaNacimiento!,
+        estadoCodigo: valores.estadoCodigo,
+      })
+      .subscribe({
+        next: (detalle) => {
+          this.guardandoDatos.set(false);
+          this.estudianteEditando.set(detalle);
+        },
+        error: (error) => {
+          this.guardandoDatos.set(false);
+          this.errorDatos.set(error.error?.message ?? 'No se pudieron guardar los datos personales.');
+        },
+      });
+  }
+
+  guardarCurso(): void {
+    const estudiante = this.estudianteEditando();
+    if (!estudiante) return;
+
+    if (this.formularioEditarCurso.invalid) {
+      this.formularioEditarCurso.markAllAsTouched();
+      return;
+    }
+
+    this.guardandoCurso.set(true);
+    this.errorCursoEdicion.set(null);
+    const cursoId = this.formularioEditarCurso.getRawValue().cursoId!;
+
+    this.academicoService.cambiarCursoEstudiante(estudiante.id, { cursoId }).subscribe({
+      next: () => {
+        this.guardandoCurso.set(false);
+        this.abrirEditar(estudiante.id);
+      },
+      error: (error) => {
+        this.guardandoCurso.set(false);
+        this.errorCursoEdicion.set(error.error?.message ?? 'No se pudo cambiar el curso del estudiante.');
+      },
+    });
+  }
+
+  guardarCarnet(): void {
+    const estudiante = this.estudianteEditando();
+    if (!estudiante) return;
+
+    if (this.formularioEditarCarnet.invalid) {
+      this.formularioEditarCarnet.markAllAsTouched();
+      return;
+    }
+
+    this.guardandoCarnet.set(true);
+    this.errorCarnetEdicion.set(null);
+    const uidTarjeta = this.formularioEditarCarnet.getRawValue().uidTarjeta!.trim();
+
+    const peticion = estudiante.tarjeta
+      ? this.nfcService.cambiarTarjetaEstudiante(estudiante.id, { uidTarjeta })
+      : this.nfcService.asignarTarjeta({ uidTarjeta, tipoTitular: 'estudiante', estudianteId: estudiante.id });
+
+    peticion.subscribe({
+      next: () => {
+        this.guardandoCarnet.set(false);
+        this.abrirEditar(estudiante.id);
+      },
+      error: (error) => {
+        this.guardandoCarnet.set(false);
+        this.errorCarnetEdicion.set(error.error?.message ?? 'No se pudo cambiar el carnet del estudiante.');
+      },
+    });
+  }
+
+  guardarAcudienteEdicion(): void {
+    const estudiante = this.estudianteEditando();
+    if (!estudiante?.acudiente) return;
+
+    if (this.formularioEditarAcudiente.invalid) {
+      this.formularioEditarAcudiente.markAllAsTouched();
+      return;
+    }
+
+    this.guardandoAcudienteEdicion.set(true);
+    this.errorAcudienteEdicion.set(null);
+    const valores = this.formularioEditarAcudiente.getRawValue();
+
+    this.academicoService
+      .actualizarAcudiente(estudiante.acudiente.id, {
+        nombre: valores.nombres!.trim(),
+        apellidos: valores.apellidos!.trim(),
+        parentesco: valores.parentesco,
+        telefonoWhatsapp: valores.telefonoWhatsapp!.trim(),
+        email: valores.email?.trim() || undefined,
+        numeroDocumento: valores.numeroDocumento?.trim() || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.guardandoAcudienteEdicion.set(false);
+          this.abrirEditar(estudiante.id);
+        },
+        error: (error) => {
+          this.guardandoAcudienteEdicion.set(false);
+          this.errorAcudienteEdicion.set(error.error?.message ?? 'No se pudo actualizar el acudiente.');
+        },
+      });
   }
 
   private cargarResumen(): void {

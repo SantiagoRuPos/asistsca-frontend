@@ -108,8 +108,9 @@ export class ConfiguracionComponent {
     accessToken: ['', Validators.required],
     apiVersion: ['v21.0', Validators.maxLength(10)],
     plantillaEntrada: ['hello_world', Validators.maxLength(120)],
+    idiomaPlantillaEntrada: ['es_CO', Validators.maxLength(10)],
     plantillaSalida: ['hello_world', Validators.maxLength(120)],
-    idiomaPlantilla: ['en_US', Validators.maxLength(10)],
+    idiomaPlantillaSalida: ['es_CO', Validators.maxLength(10)],
   });
 
   constructor() {
@@ -220,8 +221,9 @@ export class ConfiguracionComponent {
       accessToken: '',
       apiVersion: config?.apiVersion ?? 'v21.0',
       plantillaEntrada: config?.plantillaEntrada ?? 'hello_world',
+      idiomaPlantillaEntrada: config?.idiomaPlantillaEntrada ?? 'es_CO',
       plantillaSalida: config?.plantillaSalida ?? 'hello_world',
-      idiomaPlantilla: config?.idiomaPlantilla ?? 'en_US',
+      idiomaPlantillaSalida: config?.idiomaPlantillaSalida ?? 'es_CO',
     });
     this.errorModalWhatsapp.set(null);
     this.mostrarModalWhatsapp.set(true);
@@ -244,8 +246,9 @@ export class ConfiguracionComponent {
       accessToken: valores.accessToken!,
       apiVersion: valores.apiVersion || undefined,
       plantillaEntrada: valores.plantillaEntrada || undefined,
+      idiomaPlantillaEntrada: valores.idiomaPlantillaEntrada || undefined,
       plantillaSalida: valores.plantillaSalida || undefined,
-      idiomaPlantilla: valores.idiomaPlantilla || undefined,
+      idiomaPlantillaSalida: valores.idiomaPlantillaSalida || undefined,
     };
 
     this.errorModalWhatsapp.set(null);
