@@ -113,6 +113,27 @@
         <p class="text-sm text-gray-400 mb-3">Todos los estudiantes matriculados ya tienen un carnet asignado.</p>
       }
 
+      @if (mostrarBannerTarjetaDesconocida()) {
+        <div class="flex items-center justify-between gap-3 bg-brand-teal/5 border border-brand-teal/20 rounded-lg px-3 py-2.5 mb-3">
+          <div class="min-w-0">
+            <p class="text-sm text-gray-700">
+              Tarjeta detectada: <span class="font-mono font-medium">{{ tarjetaDesconocida()!.uidTarjeta }}</span>
+            </p>
+            <p class="text-xs text-gray-400">hace {{ segundosDesde(tarjetaDesconocida()!.fechaEscaneo) }} s{{ tarjetaDesconocida()!.lector?.nombre ? ' · ' + tarjetaDesconocida()!.lector!.nombre : '' }}</p>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button type="button" (click)="usarUidDetectado()" class="px-3 py-1.5 rounded-lg bg-brand-teal text-white text-xs font-medium hover:bg-brand-teal-dark">
+              Usar este UID
+            </button>
+            <button type="button" (click)="descartarUidDetectado()" class="w-7 h-7 rounded-lg text-gray-400 hover:bg-gray-100 inline-flex items-center justify-center">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+
       <form [formGroup]="formularioTarjeta" (ngSubmit)="guardarTarjeta()" class="space-y-4">
         <div>
           <label class="block text-sm text-gray-600 mb-1.5">Estudiante</label>

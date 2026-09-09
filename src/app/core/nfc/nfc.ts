@@ -49,6 +49,12 @@ export interface TarjetaNfc {
   fechaAsignacion: string;
 }
 
+export interface TarjetaDesconocida {
+  uidTarjeta: string;
+  fechaEscaneo: string;
+  lector: { id: string; nombre: string | null; codigoLector: string } | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class NfcService {
   private readonly http = inject(HttpClient);
@@ -72,5 +78,9 @@ export class NfcService {
 
   cambiarTarjetaEstudiante(estudianteId: string, dto: CambiarTarjetaEstudiante): Observable<TarjetaNfc> {
     return this.http.patch<TarjetaNfc>(`${this.baseUrl}/tarjetas/estudiante/${estudianteId}`, dto);
+  }
+
+  obtenerUltimaTarjetaDesconocida(): Observable<TarjetaDesconocida | null> {
+    return this.http.get<TarjetaDesconocida | null>(`${this.baseUrl}/tarjetas/desconocidas/ultima`);
   }
 }

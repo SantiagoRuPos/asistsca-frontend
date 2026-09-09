@@ -1,6 +1,6 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { AsignarTarjeta, NfcService, TarjetaNfc } from '../../core/nfc/nfc';
+import { AsignarTarjeta, NfcService, TarjetaDesconocida, TarjetaNfc } from '../../core/nfc/nfc';
 import { AcademicoService, EstudianteMatriculado } from '../../core/academico/academico';
 import { AsistenciaService, TipoRegistroManual } from '../../core/asistencia/asistencia';
 import { AuthService } from '../../core/auth/auth';
@@ -19,6 +19,7 @@ export class CarnetsComponent {
   private readonly asistenciaService = inject(AsistenciaService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   // admin/rector/coordinador ven la gestión completa (tabla + formulario de
   // asignación); profesor ve una versión reducida de solo lectura pensada
@@ -73,6 +74,20 @@ export class CarnetsComponent {
     uidTarjeta: ['', [Validators.required, Validators.maxLength(40)]],
   });
 
+  // Tarjeta desconocida detectada por refresco periódico (polling): cuando
+  // el ESP32 lee un UID que no corresponde a ningún carnet asignado, el
+  // backend lo guarda (ver GET /nfc/tarjetas/desconocidas/ultima) para no
+  // tener que copiarlo a mano de la tarjeta física. No se autocompleta solo
+  // — se ofrece con un botón "Usar este UID" para no pisar lo que la
+  // persona ya haya escrito.
+  protected readonly tarjetaDesconocida = signal<TarjetaDesconocida | null>(null);
+  private uidDescartado: string | null = null;
+
+  protected readonly mostrarBannerTarjetaDesconocida = computed(() => {
+    const tarjeta = this.tarjetaDesconocida();
+    return !!tarjeta && tarjeta.uidTarjeta !== this.uidDescartado;
+  });
+
   // --- Solo profesor: registrar asistencia manual desde el carnet ---
   // El profesor no elige presente/tarde/ausente/excusado directamente: solo
   // "entrada" (el sistema decide presente o tarde automáticamente, igual que
@@ -87,6 +102,9 @@ export class CarnetsComponent {
     this.cargarTarjetas();
     if (this.esGestion()) {
       this.cargarEstudiantesMatriculados();
+      this.consultarTarjetaDesconocida();
+      const intervaloTarjetaDesconocida = setInterval(() => this.consultarTarjetaDesconocida(), 3_000);
+      this.destroyRef.onDestroy(() => clearInterval(intervaloTarjetaDesconocida));
     }
   }
 
@@ -115,6 +133,8 @@ export class CarnetsComponent {
         this.guardandoTarjeta.set(false);
         this.tarjetaAsignadaExito.set(true);
         this.formularioTarjeta.reset({ estudianteId: '', uidTarjeta: '' });
+        this.uidDescartado = null;
+        this.tarjetaDesconocida.set(null);
         this.cargarTarjetas();
         setTimeout(() => this.tarjetaAsignadaExito.set(false), 3000);
       },
@@ -171,6 +191,22 @@ export class CarnetsComponent {
     return nombre.slice(0, 2).toUpperCase();
   }
 
+  protected usarUidDetectado(): void {
+    const tarjeta = this.tarjetaDesconocida();
+    if (!tarjeta) return;
+    this.formularioTarjeta.patchValue({ uidTarjeta: tarjeta.uidTarjeta });
+    this.uidDescartado = tarjeta.uidTarjeta;
+  }
+
+  protected descartarUidDetectado(): void {
+    const tarjeta = this.tarjetaDesconocida();
+    if (tarjeta) this.uidDescartado = tarjeta.uidTarjeta;
+  }
+
+  protected segundosDesde(fechaIso: string): number {
+    return Math.max(0, Math.round((Date.now() - new Date(fechaIso).getTime()) / 1000));
+  }
+
   protected formatearFechaHora(fechaIso: string | null): string {
     if (!fechaIso) return 'Nunca';
     const instante = new Date(fechaIso);
@@ -209,6 +245,16 @@ export class CarnetsComponent {
       next: (estudiantes) => this.estudiantesMatriculados.set(estudiantes),
       // Best-effort: si falla, el selector del formulario simplemente queda
       // vacío (no rompe el resto de la pantalla, que no depende de esto).
+      error: () => {},
+    });
+  }
+
+  // Best-effort y silencioso (igual que el refresco de Lectores en
+  // Configuración): si falla una consulta puntual, simplemente no se
+  // actualiza el banner, no se muestra ningún error en pantalla por esto.
+  private consultarTarjetaDesconocida(): void {
+    this.nfcService.obtenerUltimaTarjetaDesconocida().subscribe({
+      next: (tarjeta) => this.tarjetaDesconocida.set(tarjeta),
       error: () => {},
     });
   }
