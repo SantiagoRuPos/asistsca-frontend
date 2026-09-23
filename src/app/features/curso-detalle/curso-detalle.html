@@ -106,6 +106,102 @@
     </div>
   </div>
 
+  <!-- Sección: Horario del curso -->
+  <div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-4">
+    <button type="button" (click)="alternarHorario()" class="w-full flex items-center justify-between px-5 py-4">
+      <span class="flex items-center gap-2 font-semibold text-gray-800">
+        <span class="w-6 h-6 rounded-full bg-brand-teal text-white flex items-center justify-center">
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2" />
+            <circle cx="12" cy="12" r="9" />
+          </svg>
+        </span>
+        Horario del curso
+      </span>
+      <svg class="w-4 h-4 text-gray-400 transition-transform" [class.rotate-180]="!mostrarHorario()" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 15.75 7.5-7.5 7.5 7.5" />
+      </svg>
+    </button>
+
+    @if (mostrarHorario()) {
+      @if (errorHorario()) {
+        <p class="text-sm text-red-500 px-5 pb-2">{{ errorHorario() }}</p>
+      }
+      @if (!puedeConfigurarHorario()) {
+        <p class="text-xs text-gray-400 px-5 pb-3">Solo admin, rector o coordinador pueden configurar el horario. Esta vista es de solo lectura.</p>
+      }
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-gray-400 text-xs uppercase tracking-wide border-t border-gray-100">
+              <th class="px-5 py-2 font-medium">Día</th>
+              <th class="px-5 py-2 font-medium">Hora de entrada</th>
+              <th class="px-5 py-2 font-medium">Tolerancia (min)</th>
+              <th class="px-5 py-2 font-medium">Hora de salida</th>
+              <th class="px-5 py-2 font-medium text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-50">
+            @for (dia of diasSemana; track dia.valor) {
+              <tr>
+                @if (diaEnEdicion() === dia.valor) {
+                  <td class="px-5 py-2.5 text-gray-800 font-medium">{{ dia.etiqueta }}</td>
+                  <td class="px-5 py-2.5">
+                    <input type="time" [ngModel]="formHoraEntrada()" (ngModelChange)="formHoraEntrada.set($event)" class="border border-gray-200 rounded-lg px-2 py-1 text-sm w-28" />
+                  </td>
+                  <td class="px-5 py-2.5">
+                    <input type="number" min="0" max="120" [ngModel]="formTolerancia()" (ngModelChange)="formTolerancia.set($event)" class="border border-gray-200 rounded-lg px-2 py-1 text-sm w-20" />
+                  </td>
+                  <td class="px-5 py-2.5">
+                    <input type="time" [ngModel]="formHoraSalida()" (ngModelChange)="formHoraSalida.set($event)" class="border border-gray-200 rounded-lg px-2 py-1 text-sm w-28" />
+                  </td>
+                  <td class="px-5 py-2.5 text-right">
+                    <div class="inline-flex items-center gap-2">
+                      <button type="button" (click)="guardarHorarioDia(dia.valor)" [disabled]="guardandoHorario()" class="px-3 py-1.5 rounded-lg bg-brand-teal text-white text-xs font-medium disabled:opacity-50">
+                        {{ guardandoHorario() ? 'Guardando...' : 'Guardar' }}
+                      </button>
+                      <button type="button" (click)="cancelarEdicionHorario()" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600">
+                        Cancelar
+                      </button>
+                    </div>
+                  </td>
+                } @else {
+                  <td class="px-5 py-2.5 text-gray-800 font-medium">{{ dia.etiqueta }}</td>
+                  @if (horarioPorDia().get(dia.valor); as horario) {
+                    <td class="px-5 py-2.5 text-gray-600">{{ horario.horaEntrada.slice(0, 5) }}</td>
+                    <td class="px-5 py-2.5 text-gray-600">{{ horario.minutosToleranciaTardanza }}</td>
+                    <td class="px-5 py-2.5 text-gray-600">{{ horario.horaSalida.slice(0, 5) }}</td>
+                    <td class="px-5 py-2.5 text-right">
+                      @if (puedeConfigurarHorario()) {
+                        <div class="inline-flex items-center gap-2">
+                          <button type="button" (click)="abrirEdicionHorario(dia.valor)" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600">
+                            Editar
+                          </button>
+                          <button type="button" (click)="eliminarHorarioDia(dia.valor)" class="px-3 py-1.5 rounded-lg border border-red-200 text-xs font-medium text-red-500">
+                            Quitar
+                          </button>
+                        </div>
+                      }
+                    </td>
+                  } @else {
+                    <td class="px-5 py-2.5 text-gray-400 italic" colspan="2">Sin configurar</td>
+                    <td class="px-5 py-2.5 text-right">
+                      @if (puedeConfigurarHorario()) {
+                        <button type="button" (click)="abrirEdicionHorario(dia.valor)" class="px-3 py-1.5 rounded-lg border border-brand-teal text-xs font-medium text-brand-teal">
+                          Configurar
+                        </button>
+                      }
+                    </td>
+                  }
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
   <!-- Sección: Llegaron -->
   <div class="bg-white rounded-xl border border-gray-100 overflow-hidden mb-4">
     <button type="button" (click)="alternarSeccion('llegaron')" class="w-full flex items-center justify-between px-5 py-4">
@@ -358,7 +454,19 @@
           </div>
           </td>
           <td class="px-5 py-2.5 text-right">
+          <div class="inline-flex items-center gap-2 justify-end">
           <span class="px-3 py-1.5 rounded-lg bg-gray-100 text-xs font-medium text-gray-500">Evadido</span>
+          @if (puedeMarcarEvadido()) {
+          <button
+          type="button"
+          (click)="marcarEncontrado(estudiante.id)"
+          [disabled]="accionEnCurso() === estudiante.id"
+          class="px-3 py-1.5 rounded-lg border border-green-200 text-xs font-medium text-green-600 hover:bg-green-50 disabled:opacity-50"
+          >
+          {{ accionEnCurso() === estudiante.id ? 'Marcando...' : 'Marcar encontrado' }}
+          </button>
+          }
+          </div>
           </td>
           </tr>
           }

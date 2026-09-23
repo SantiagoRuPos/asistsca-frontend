@@ -53,7 +53,15 @@ export interface FiltrosAsistencia {
   limite?: number;
 }
 
-export type TipoRegistroManual = 'presente' | 'tarde' | 'ausente' | 'excusado' | 'evadido' | 'salida' | 'entrada';
+export type TipoRegistroManual =
+  | 'presente'
+  | 'tarde'
+  | 'ausente'
+  | 'excusado'
+  | 'evadido'
+  | 'salida'
+  | 'entrada'
+  | 'encontrado';
 
 export interface RegistrarAsistenciaManual {
   estudianteId: string;

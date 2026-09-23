@@ -1,0 +1,223 @@
+<div class="flex items-start justify-between gap-4 mb-6 flex-wrap">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Salidas anticipadas</h1>
+    <p class="text-sm text-gray-500">Autorizaciones de salida temprana de estudiantes, con documento formateado y evidencia adjunta.</p>
+  </div>
+
+  @if (puedeAutorizar()) {
+    <button type="button" (click)="abrirModalNueva()" class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      </svg>
+      Nueva autorización
+    </button>
+  }
+</div>
+
+@if (error()) {
+  <p class="text-sm text-red-500 mb-4">{{ error() }}</p>
+}
+@if (errorAccion()) {
+  <p class="text-sm text-red-500 mb-4">{{ errorAccion() }}</p>
+}
+
+<div class="flex items-center gap-3 mb-4 flex-wrap">
+  <input
+    type="date"
+    [value]="fechaFiltro()"
+    (change)="actualizarFecha($any($event.target).value)"
+    class="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+  />
+  <input
+    type="text"
+    placeholder="Buscar estudiante..."
+    [value]="busquedaInput()"
+    (input)="actualizarBusqueda($any($event.target).value)"
+    class="border border-gray-200 rounded-lg px-3 py-2 text-sm flex-1 min-w-[200px]"
+  />
+</div>
+
+<div class="bg-white rounded-xl border border-gray-100 overflow-hidden">
+  @if (cargandoLista()) {
+    <p class="text-sm text-gray-400 py-8 text-center">Cargando autorizaciones...</p>
+  } @else if (listaFiltrada().length === 0) {
+    <p class="text-sm text-gray-400 py-8 text-center">No hay autorizaciones de salida para esta fecha.</p>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-400 text-xs uppercase tracking-wide">
+            <th class="px-5 py-3 font-medium">Estudiante</th>
+            <th class="px-5 py-3 font-medium">Hora</th>
+            <th class="px-5 py-3 font-medium">Acudiente</th>
+            <th class="px-5 py-3 font-medium">Motivo</th>
+            <th class="px-5 py-3 font-medium">Estado</th>
+            <th class="px-5 py-3 font-medium text-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          @for (autorizacion of listaFiltrada(); track autorizacion.id) {
+            <tr>
+              <td class="px-5 py-2.5">
+                <div class="flex items-center gap-3">
+                  <span class="w-8 h-8 rounded-full bg-brand-teal/10 text-brand-teal font-semibold flex items-center justify-center text-xs shrink-0">
+                    {{ iniciales(autorizacion.estudiante.nombres, autorizacion.estudiante.apellidos) }}
+                  </span>
+                  <span class="text-gray-800">{{ autorizacion.estudiante.nombres }} {{ autorizacion.estudiante.apellidos }}</span>
+                </div>
+              </td>
+              <td class="px-5 py-2.5 text-gray-600">{{ autorizacion.horaAutorizada.slice(0, 5) }}</td>
+              <td class="px-5 py-2.5 text-gray-600">{{ autorizacion.acudienteAutoriza.nombres }} {{ autorizacion.acudienteAutoriza.apellidos }}</td>
+              <td class="px-5 py-2.5 text-gray-600 max-w-[220px] truncate" [title]="autorizacion.motivo">{{ autorizacion.motivo }}</td>
+              <td class="px-5 py-2.5">
+                <span class="px-3 py-1.5 rounded-lg text-xs font-medium" [class]="claseEstado(autorizacion.estado.codigo)">
+                  {{ etiquetaEstado(autorizacion.estado.codigo) }}
+                </span>
+              </td>
+              <td class="px-5 py-2.5 text-right">
+                <button type="button" (click)="verDetalle(autorizacion)" class="px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium text-gray-600">
+                  Ver documento
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Modal: nueva autorización -->
+@if (mostrarModalNueva()) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" (click)="cerrarModalNueva()">
+    <div class="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6" (click)="$event.stopPropagation()">
+      <h2 class="text-lg font-bold text-gray-900 mb-4">Nueva autorización de salida</h2>
+
+      @if (errorModal()) {
+        <p class="text-sm text-red-500 mb-3">{{ errorModal() }}</p>
+      }
+
+      <form [formGroup]="formularioAutorizacion" (ngSubmit)="guardarAutorizacion()" class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Estudiante</label>
+          <select
+            [value]="formularioAutorizacion.value.estudianteId"
+            (change)="seleccionarEstudiante($any($event.target).value)"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="">Selecciona un estudiante...</option>
+            @for (estudiante of estudiantes(); track estudiante.id) {
+              <option [value]="estudiante.id">{{ estudiante.nombres }} {{ estudiante.apellidos }} — {{ estudiante.numeroDocumento }}</option>
+            }
+          </select>
+        </div>
+
+        @if (buscandoAcudiente()) {
+          <p class="text-xs text-gray-400">Consultando acudiente...</p>
+        } @else if (acudienteEncontrado(); as acudiente) {
+          <p class="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+            Autoriza {{ etiquetaParentesco(acudiente.parentesco) }}: <strong>{{ acudiente.nombres }} {{ acudiente.apellidos }}</strong>
+          </p>
+        }
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+            <input type="date" formControlName="fecha" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Hora de salida</label>
+            <input type="time" formControlName="horaAutorizada" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Persona que recoge al estudiante</label>
+          <input type="text" formControlName="nombrePersonaRecoge" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" placeholder="Nombre completo" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Motivo</label>
+          <textarea formControlName="motivo" rows="3" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm" placeholder="Ej: Cita médica"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Evidencia adjunta (opcional)</label>
+          @if (archivoSubido(); as archivo) {
+            <div class="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2 text-sm">
+              <span class="truncate">{{ archivo.nombre }}</span>
+              <button type="button" (click)="quitarArchivo()" class="text-red-500 text-xs font-medium ml-2">Quitar</button>
+            </div>
+          } @else {
+            <input type="file" accept=".pdf,.jpg,.jpeg,.png" (change)="seleccionarArchivo($event)" [disabled]="archivoSubiendo()" class="w-full text-sm" />
+            @if (archivoSubiendo()) {
+              <p class="text-xs text-gray-400 mt-1">Subiendo...</p>
+            }
+          }
+          @if (errorArchivo()) {
+            <p class="text-xs text-red-500 mt-1">{{ errorArchivo() }}</p>
+          }
+          <p class="text-xs text-gray-400 mt-1">PDF, JPG o PNG, máximo 5 MB.</p>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" (click)="cerrarModalNueva()" class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="guardando()" class="px-4 py-2 rounded-lg bg-brand-teal text-white text-sm font-medium disabled:opacity-50">
+            {{ guardando() ? 'Guardando...' : 'Autorizar salida' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal: documento formateado -->
+@if (autorizacionDetalle(); as autorizacion) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" (click)="cerrarDetalle()">
+    <div class="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6" (click)="$event.stopPropagation()">
+      <div class="flex items-start justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-900">Autorización de salida anticipada</h2>
+        <span class="px-3 py-1.5 rounded-lg text-xs font-medium" [class]="claseEstado(autorizacion.estado.codigo)">
+          {{ etiquetaEstado(autorizacion.estado.codigo) }}
+        </span>
+      </div>
+
+      <p class="text-sm text-gray-700 leading-relaxed bg-gray-50 rounded-lg p-4">{{ textoFormato(autorizacion) }}</p>
+
+      @if (autorizacion.evidenciaNombre) {
+        <button type="button" (click)="verEvidencia(autorizacion)" class="mt-3 text-sm text-brand-teal font-medium inline-flex items-center gap-1.5">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18.375 12.739l-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01" />
+          </svg>
+          Ver evidencia: {{ autorizacion.evidenciaNombre }}
+        </button>
+      }
+
+      <div class="flex flex-wrap justify-end gap-2 mt-6">
+        @if (autorizacion.estado.codigo === 'autorizada') {
+          <button
+            type="button"
+            (click)="marcarUtilizada(autorizacion.id)"
+            [disabled]="accionEnCurso() === autorizacion.id"
+            class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 disabled:opacity-50"
+          >
+            {{ accionEnCurso() === autorizacion.id ? 'Marcando...' : 'Marcar utilizada' }}
+          </button>
+        }
+        <button
+          type="button"
+          (click)="descargarPdf(autorizacion)"
+          [disabled]="descargandoPdf()"
+          class="px-4 py-2 rounded-lg bg-brand-teal text-white text-sm font-medium disabled:opacity-50"
+        >
+          {{ descargandoPdf() ? 'Descargando...' : 'Descargar PDF' }}
+        </button>
+        <button type="button" (click)="cerrarDetalle()" class="px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+}

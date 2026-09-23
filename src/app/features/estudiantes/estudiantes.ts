@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, HostListener, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   AcademicoService,
@@ -9,7 +9,7 @@ import {
   ListaEstudiantes,
   ResumenEstudiantes,
 } from '../../core/academico/academico';
-import { NfcService } from '../../core/nfc/nfc';
+import { NfcService, TarjetaDesconocida } from '../../core/nfc/nfc';
 import { AuthService } from '../../core/auth/auth';
 
 @Component({
@@ -23,6 +23,7 @@ export class EstudiantesComponent {
   private readonly nfcService = inject(NfcService);
   private readonly authService = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly puedeGestionar = computed(() => {
     const rol = this.authService.usuario()?.rol;
@@ -82,6 +83,18 @@ export class EstudiantesComponent {
   protected readonly guardandoTarjeta = signal(false);
   protected readonly errorTarjeta = signal<string | null>(null);
   protected readonly tarjetaActivada = signal(false);
+
+  // Tarjeta desconocida detectada por refresco periodico (mismo patron que
+  // la pantalla Carnets: ver GET /nfc/tarjetas/desconocidas/ultima). Solo se
+  // consulta mientras el wizard esta en el paso 4 (activar carnet).
+  protected readonly tarjetaDesconocida = signal<TarjetaDesconocida | null>(null);
+  private uidDescartado: string | null = null;
+  private intervaloTarjetaDesconocida: ReturnType<typeof setInterval> | null = null;
+
+  protected readonly mostrarBannerTarjetaDesconocida = computed(() => {
+    const tarjeta = this.tarjetaDesconocida();
+    return !!tarjeta && tarjeta.uidTarjeta !== this.uidDescartado;
+  });
 
   // Menú de acciones (los "..." de cada fila) y activar/desactivar rápido.
   protected readonly menuAbiertoId = signal<string | null>(null);
@@ -206,6 +219,9 @@ export class EstudiantesComponent {
     this.estudianteRegistrado.set(null);
     this.tarjetaActivada.set(false);
     this.errorTarjeta.set(null);
+    this.tarjetaDesconocida.set(null);
+    this.uidDescartado = null;
+    this.detenerPollingTarjetaDesconocida();
     this.formularioEstudiante.reset({ tipoDocumento: 'TI' });
     this.formularioMatricula.reset();
     this.formularioAcudiente.reset({ parentesco: 'padre' });
@@ -215,6 +231,7 @@ export class EstudiantesComponent {
 
   cerrarWizard(): void {
     this.mostrarWizard.set(false);
+    this.detenerPollingTarjetaDesconocida();
     if (this.estudianteRegistrado()) {
       this.cargarResumen();
       this.cargarLista();
@@ -285,6 +302,7 @@ export class EstudiantesComponent {
           this.guardando.set(false);
           this.estudianteRegistrado.set(respuesta);
           this.pasoActual.set(4);
+          this.iniciarPollingTarjetaDesconocida();
         },
         error: (error) => {
           this.guardando.set(false);
@@ -311,12 +329,52 @@ export class EstudiantesComponent {
       next: () => {
         this.guardandoTarjeta.set(false);
         this.tarjetaActivada.set(true);
+        this.detenerPollingTarjetaDesconocida();
       },
       error: (error) => {
         this.guardandoTarjeta.set(false);
         this.errorTarjeta.set(error.error?.message ?? 'No se pudo activar el carnet. Verifica el UID e intenta de nuevo.');
       },
     });
+  }
+
+  private iniciarPollingTarjetaDesconocida(): void {
+    if (this.intervaloTarjetaDesconocida) return; // ya esta corriendo
+    this.consultarTarjetaDesconocida();
+    this.intervaloTarjetaDesconocida = setInterval(() => this.consultarTarjetaDesconocida(), 3_000);
+    this.destroyRef.onDestroy(() => this.detenerPollingTarjetaDesconocida());
+  }
+
+  private detenerPollingTarjetaDesconocida(): void {
+    if (this.intervaloTarjetaDesconocida) {
+      clearInterval(this.intervaloTarjetaDesconocida);
+      this.intervaloTarjetaDesconocida = null;
+    }
+  }
+
+  // Best-effort y silencioso (mismo patron que la pantalla Carnets): si falla
+  // una consulta puntual, simplemente no se actualiza el banner.
+  private consultarTarjetaDesconocida(): void {
+    this.nfcService.obtenerUltimaTarjetaDesconocida().subscribe({
+      next: (tarjeta) => this.tarjetaDesconocida.set(tarjeta),
+      error: () => {},
+    });
+  }
+
+  protected usarUidDetectado(): void {
+    const tarjeta = this.tarjetaDesconocida();
+    if (!tarjeta) return;
+    this.formularioTarjeta.patchValue({ uidTarjeta: tarjeta.uidTarjeta });
+    this.uidDescartado = tarjeta.uidTarjeta;
+  }
+
+  protected descartarUidDetectado(): void {
+    const tarjeta = this.tarjetaDesconocida();
+    if (tarjeta) this.uidDescartado = tarjeta.uidTarjeta;
+  }
+
+  protected segundosDesde(fechaIso: string): number {
+    return Math.max(0, Math.round((Date.now() - new Date(fechaIso).getTime()) / 1000));
   }
 
   protected iniciales(nombres: string, apellidos: string): string {

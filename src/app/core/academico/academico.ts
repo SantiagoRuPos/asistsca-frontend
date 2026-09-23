@@ -216,6 +216,27 @@ export interface CambiarCursoEstudiante {
   cursoId: string;
 }
 
+export interface HorarioCurso {
+  id: string;
+  diaSemana: number; // 1 (lunes) .. 7 (domingo)
+  horaEntrada: string; // HH:mm:ss (como lo devuelve Postgres)
+  minutosToleranciaTardanza: number;
+  horaSalida: string;
+}
+
+export interface CrearHorarioCurso {
+  diasSemana: number[];
+  horaEntrada: string; // HH:mm
+  minutosToleranciaTardanza?: number;
+  horaSalida: string; // HH:mm
+}
+
+export interface ActualizarHorarioCurso {
+  horaEntrada?: string;
+  minutosToleranciaTardanza?: number;
+  horaSalida?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AcademicoService {
   private readonly http = inject(HttpClient);
@@ -307,5 +328,27 @@ export class AcademicoService {
 
   cambiarCursoEstudiante(id: string, dto: CambiarCursoEstudiante): Observable<{ id: string }> {
     return this.http.patch<{ id: string }>(`${this.baseUrl}/estudiantes/${id}/curso`, dto);
+  }
+
+  listarHorariosCurso(cursoId: string): Observable<HorarioCurso[]> {
+    return this.http.get<HorarioCurso[]>(`${this.baseUrl}/cursos/${cursoId}/horarios`);
+  }
+
+  crearHorarioCurso(
+    cursoId: string,
+    dto: CrearHorarioCurso,
+  ): Observable<{ creados: HorarioCurso[]; omitidos?: string }> {
+    return this.http.post<{ creados: HorarioCurso[]; omitidos?: string }>(
+      `${this.baseUrl}/cursos/${cursoId}/horarios`,
+      dto,
+    );
+  }
+
+  actualizarHorarioCurso(cursoId: string, horarioId: string, dto: ActualizarHorarioCurso): Observable<HorarioCurso> {
+    return this.http.patch<HorarioCurso>(`${this.baseUrl}/cursos/${cursoId}/horarios/${horarioId}`, dto);
+  }
+
+  eliminarHorarioCurso(cursoId: string, horarioId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/cursos/${cursoId}/horarios/${horarioId}`);
   }
 }

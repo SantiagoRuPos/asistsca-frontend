@@ -92,6 +92,17 @@ export const routes: Routes = [
         path: 'carnets',
         loadComponent: () => import('./features/carnets/carnets').then((m) => m.CarnetsComponent),
       },
+      {
+        // Sin roleGuard: el backend ya permite admin/rector/coordinador/profesor
+        // (POST /autorizaciones-salida) — un profesor que no sea director de
+        // grupo del curso recibe 403 del servidor al intentar autorizar, igual
+        // que en Carnets.
+        path: 'salidas',
+        loadComponent: () =>
+          import('./features/autorizaciones-salida/autorizaciones-salida').then(
+            (m) => m.AutorizacionesSalidaComponent,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'login' },

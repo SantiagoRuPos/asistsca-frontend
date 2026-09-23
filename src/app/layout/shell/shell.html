@@ -48,20 +48,29 @@
       </button>
     </div>
 
-    <!-- Navegación -->
-    <nav class="mt-4 flex flex-col gap-1">
+    <!-- Navegación, agrupada (2026-09-23) para que sea más fácil de escanear
+         de un vistazo que la lista plana anterior. -->
+    <nav class="mt-4 flex flex-col gap-4">
 
-      @for (item of menu(); track item.etiqueta) {
+      @for (grupo of grupos(); track grupo.titulo) {
 
-        <a
-          [routerLink]="item.ruta"
-          routerLinkActive="bg-brand-teal text-white"
-          [routerLinkActiveOptions]="{ exact: false }"
-          (click)="cerrarMenuMovil()"
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors"
-        >
+        <div class="flex flex-col gap-1">
 
-          @switch (item.icono) {
+          <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-white/35">
+            {{ grupo.titulo }}
+          </p>
+
+          @for (item of grupo.items; track item.etiqueta) {
+
+            <a
+              [routerLink]="item.ruta"
+              routerLinkActive="bg-brand-teal text-white"
+              [routerLinkActiveOptions]="{ exact: false }"
+              (click)="cerrarMenuMovil()"
+              class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+            >
+
+              @switch (item.icono) {
 
             @case ('inicio') {
               <svg
@@ -159,6 +168,22 @@
               </svg>
             }
 
+            @case ('salidas') {
+              <svg
+                class="w-5 h-5 shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75"
+                />
+              </svg>
+            }
+
             @case ('reportes') {
               <svg
                 class="w-5 h-5 shrink-0"
@@ -245,13 +270,17 @@
               </svg>
             }
 
+              }
+
+              <span class="text-sm">
+                {{ item.etiqueta }}
+              </span>
+
+            </a>
+
           }
 
-          <span class="text-sm">
-            {{ item.etiqueta }}
-          </span>
-
-        </a>
+        </div>
 
       }
 
@@ -360,10 +389,42 @@
       </div>
     </header>
 
+    <!--
+      Banner persistente de estado de licencia — solo admin/rector (ver
+      bannerLicencia() en shell.ts), visible en cualquier pantalla mientras
+      la licencia no esté "activa". Amarillo en aviso (todavía funciona
+      todo), rojo en degradada (ya no se puede guardar/editar/eliminar).
+    -->
+    @if (bannerLicencia(); as licencia) {
+      <div
+        class="px-4 py-2 text-sm font-medium text-center shrink-0"
+        [class.bg-amber-100]="licencia.nivel === 'aviso'"
+        [class.text-amber-900]="licencia.nivel === 'aviso'"
+        [class.bg-red-100]="licencia.nivel === 'degradada'"
+        [class.text-red-900]="licencia.nivel === 'degradada'"
+      >
+        {{ licencia.mensaje }}
+      </div>
+    }
+
     <main class="flex-1 p-4 lg:p-8 overflow-auto">
       <router-outlet />
     </main>
 
   </div>
+
+  <!--
+    Aviso puntual (toast) cuando una escritura se bloquea por licencia
+    vencida — para CUALQUIER rol (ver mensajeBloqueoLicencia() en shell.ts),
+    no solo admin/rector. Se limpia solo tras unos segundos.
+  -->
+  @if (mensajeBloqueoLicencia(); as mensaje) {
+    <div
+      class="fixed bottom-4 right-4 z-50 max-w-sm bg-red-600 text-white text-sm rounded-lg shadow-lg px-4 py-3"
+      role="alert"
+    >
+      {{ mensaje }}
+    </div>
+  }
 
 </div>
