@@ -146,6 +146,8 @@ export interface AcudienteListado {
   telefonoWhatsapp: string;
   email: string | null;
   numeroDocumento: string | null;
+  autorizacionTratamientoDatos: boolean;
+  fechaAutorizacionTratamiento: string | null;
   estudiantes: EstudianteVinculadoAcudiente[];
 }
 
@@ -307,6 +309,20 @@ export class AcademicoService {
     return this.http.patch<{ id: string; nombres: string; apellidos: string }>(`${this.baseUrl}/acudientes/${id}`, dto);
   }
 
+  // (2026-10-15) Deja constancia de la autorizacion de tratamiento de datos
+  // personales (Ley 1581 de 2012 / Habeas Data) que el acudiente otorga en
+  // representacion del menor. El consentimiento real lo recoge el colegio
+  // -- este metodo solo registra el hecho y la fecha en el sistema.
+  actualizarAutorizacionDatos(
+    acudienteId: string,
+    autorizado: boolean,
+  ): Observable<{ id: string; autorizacionTratamientoDatos: boolean; fechaAutorizacionTratamiento: string | null }> {
+    return this.http.patch<{ id: string; autorizacionTratamientoDatos: boolean; fechaAutorizacionTratamiento: string | null }>(
+      `${this.baseUrl}/acudientes/${acudienteId}/autorizacion-datos`,
+      { autorizado },
+    );
+  }
+
   actualizarContactoNotificacion(
     estudianteId: string,
     acudienteId: string,
@@ -315,6 +331,19 @@ export class AcademicoService {
     return this.http.patch<{ estudianteId: string; acudienteId: string; esContactoNotificacion: boolean }>(
       `${this.baseUrl}/estudiantes/${estudianteId}/acudientes/${acudienteId}/contacto`,
       { esContactoNotificacion },
+    );
+  }
+
+  // (2026-09-25) Vincula un acudiente ya existente a un estudiante adicional
+  // (hermanos/sobrinos que comparten el mismo acudiente) sin duplicar sus
+  // datos creando un registro nuevo.
+  vincularAcudienteExistente(
+    acudienteId: string,
+    estudianteId: string,
+  ): Observable<{ estudianteId: string; acudienteId: string; esContactoNotificacion: boolean }> {
+    return this.http.post<{ estudianteId: string; acudienteId: string; esContactoNotificacion: boolean }>(
+      `${this.baseUrl}/acudientes/${acudienteId}/vincular`,
+      { estudianteId },
     );
   }
 

@@ -82,6 +82,7 @@
             <th class="px-5 py-3 font-medium">Parentesco</th>
             <th class="px-5 py-3 font-medium">Documento</th>
             <th class="px-5 py-3 font-medium">Contacto</th>
+            <th class="px-5 py-3 font-medium">Datos personales</th>
             <th class="px-5 py-3 font-medium">Estudiantes vinculados</th>
             <th class="px-5 py-3 font-medium text-right">Acciones</th>
           </tr>
@@ -113,6 +114,21 @@
                 </div>
               </td>
               <td class="px-5 py-3">
+                <button
+                  type="button"
+                  [title]="acudiente.autorizacionTratamientoDatos ? ('Autorizó el tratamiento de datos el ' + (acudiente.fechaAutorizacionTratamiento | date: 'short') + ' — clic para revocar') : 'No ha autorizado el tratamiento de datos (Ley 1581 / Habeas Data) — clic para registrar que sí autorizó'"
+                  [disabled]="togglingAutorizacion() === acudiente.id"
+                  (click)="toggleAutorizacion(acudiente)"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium disabled:opacity-50"
+                  [class]="acudiente.autorizacionTratamientoDatos ? 'bg-brand-teal/10 text-brand-teal' : 'bg-amber-50 text-amber-600 border border-amber-100'"
+                >
+                  <svg class="w-3.5 h-3.5" [attr.fill]="acudiente.autorizacionTratamientoDatos ? 'currentColor' : 'none'" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                  {{ acudiente.autorizacionTratamientoDatos ? 'Autorizado' : 'Sin autorizar' }}
+                </button>
+              </td>
+              <td class="px-5 py-3">
                 @if (acudiente.estudiantes.length === 0) {
                   <span class="text-gray-400 text-xs">Sin estudiante vinculado</span>
                 } @else {
@@ -141,6 +157,16 @@
               </td>
               <td class="px-5 py-3">
                 <div class="flex items-center justify-end gap-1.5">
+                  <button
+                    type="button"
+                    title="Vincular a otro estudiante (hermano/sobrino)"
+                    (click)="abrirModalVincular(acudiente)"
+                    class="w-8 h-8 rounded-lg border border-gray-200 inline-flex items-center justify-center text-gray-500 hover:bg-gray-50"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.11A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+                    </svg>
+                  </button>
                   <button
                     type="button"
                     title="Editar acudiente"
@@ -329,6 +355,55 @@
           <button type="button" (click)="cerrarModalEditar()" class="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
           <button type="submit" [disabled]="guardandoEditar()" class="px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60">
             {{ guardandoEditar() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Modal: vincular acudiente existente a otro estudiante (hermanos/sobrinos) -->
+@if (acudienteVinculando(); as acudiente) {
+  <div class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl w-full max-w-md p-6">
+      <div class="flex items-center justify-between mb-1">
+        <h2 class="text-lg font-bold text-gray-900">Vincular a otro estudiante</h2>
+        <button type="button" (click)="cerrarModalVincular()" class="text-gray-400">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <p class="text-sm text-gray-500 mb-4">
+        {{ acudiente.nombres }} {{ acudiente.apellidos }} quedará como acudiente también de otro estudiante (por ejemplo, un hermano o sobrino), sin duplicar sus datos de contacto.
+      </p>
+
+      <form [formGroup]="formularioVincular" (ngSubmit)="guardarVincular()" class="flex flex-col gap-4">
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Estudiante</label>
+          <select formControlName="estudianteId" class="w-full px-3 py-2.5 rounded-lg border border-gray-200 text-sm">
+            <option value="" disabled>Selecciona un estudiante</option>
+            @for (est of estudiantesDisponiblesParaVincular(); track est.id) {
+              <option [value]="est.id">{{ est.nombres }} {{ est.apellidos }}</option>
+            }
+          </select>
+          @if (estudiantesDisponiblesParaVincular().length === 0) {
+            <p class="text-xs text-gray-400 mt-1">Este acudiente ya está vinculado a todos los estudiantes matriculados.</p>
+          }
+        </div>
+
+        @if (errorVincular()) {
+          <p class="text-sm text-red-500">{{ errorVincular() }}</p>
+        }
+
+        <div class="flex items-center justify-end gap-3 mt-2">
+          <button type="button" (click)="cerrarModalVincular()" class="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Cancelar</button>
+          <button
+            type="submit"
+            [disabled]="guardandoVincular() || estudiantesDisponiblesParaVincular().length === 0"
+            class="px-4 py-2.5 rounded-lg bg-brand-teal text-white text-sm font-medium hover:bg-brand-teal-dark disabled:opacity-60"
+          >
+            {{ guardandoVincular() ? 'Vinculando...' : 'Vincular' }}
           </button>
         </div>
       </form>

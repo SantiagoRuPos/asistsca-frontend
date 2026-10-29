@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   AcademicoService,
@@ -11,7 +12,7 @@ import {
 @Component({
   selector: 'app-acudientes',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './acudientes.html',
 })
 export class AcudientesComponent {
@@ -43,6 +44,27 @@ export class AcudientesComponent {
   protected readonly errorEditar = signal<string | null>(null);
 
   protected readonly togglingContacto = signal<string | null>(null);
+  protected readonly togglingAutorizacion = signal<string | null>(null);
+
+  // (2026-09-25) Vincular un acudiente ya existente a un estudiante
+  // adicional -- el caso de hermanos/sobrinos que comparten el mismo
+  // acudiente, sin duplicar sus datos de contacto creando uno nuevo.
+  protected readonly acudienteVinculando = signal<AcudienteListado | null>(null);
+  protected readonly guardandoVincular = signal(false);
+  protected readonly errorVincular = signal<string | null>(null);
+
+  protected readonly formularioVincular = this.fb.group({
+    estudianteId: ['', Validators.required],
+  });
+
+  // Se excluyen los estudiantes que ya están vinculados a este acudiente
+  // (el backend igual lo valida con 409, pero así no se deja ni intentar).
+  protected readonly estudiantesDisponiblesParaVincular = computed(() => {
+    const acudiente = this.acudienteVinculando();
+    if (!acudiente) return [];
+    const yaVinculados = new Set(acudiente.estudiantes.map((e) => e.id));
+    return this.estudiantesMatriculados().filter((e) => !yaVinculados.has(e.id));
+  });
 
   protected readonly formularioCrear = this.fb.group({
     nombres: ['', [Validators.required, Validators.maxLength(120)]],
@@ -234,6 +256,57 @@ export class AcudientesComponent {
           this.errorEditar.set(error.error?.message ?? 'No se pudo actualizar el acudiente. Intenta de nuevo.');
         },
       });
+  }
+
+  abrirModalVincular(acudiente: AcudienteListado): void {
+    this.errorVincular.set(null);
+    this.formularioVincular.reset({ estudianteId: '' });
+    this.acudienteVinculando.set(acudiente);
+  }
+
+  cerrarModalVincular(): void {
+    this.acudienteVinculando.set(null);
+  }
+
+  guardarVincular(): void {
+    const acudiente = this.acudienteVinculando();
+    if (!acudiente) return;
+
+    if (this.formularioVincular.invalid) {
+      this.formularioVincular.markAllAsTouched();
+      return;
+    }
+
+    this.guardandoVincular.set(true);
+    this.errorVincular.set(null);
+    const estudianteId = this.formularioVincular.getRawValue().estudianteId!;
+
+    this.academicoService.vincularAcudienteExistente(acudiente.id, estudianteId).subscribe({
+      next: () => {
+        this.guardandoVincular.set(false);
+        this.acudienteVinculando.set(null);
+        this.cargarLista();
+      },
+      error: (error) => {
+        this.guardandoVincular.set(false);
+        this.errorVincular.set(error.error?.message ?? 'No se pudo vincular el acudiente a ese estudiante.');
+      },
+    });
+  }
+
+  toggleAutorizacion(acudiente: AcudienteListado): void {
+    this.togglingAutorizacion.set(acudiente.id);
+
+    this.academicoService.actualizarAutorizacionDatos(acudiente.id, !acudiente.autorizacionTratamientoDatos).subscribe({
+      next: () => {
+        this.togglingAutorizacion.set(null);
+        this.cargarLista();
+      },
+      error: () => {
+        this.togglingAutorizacion.set(null);
+        this.error.set('No se pudo actualizar la autorización de datos. Intenta de nuevo.');
+      },
+    });
   }
 
   toggleContacto(estudianteId: string, acudienteId: string, valorActual: boolean): void {
