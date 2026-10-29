@@ -123,6 +123,15 @@ export class AsistenciaService {
     return this.http.post<RegistroAsistenciaDiaria>(`${this.baseUrl}/diaria/manual`, dto);
   }
 
+  // (2026-09-25) Deshace la corrección manual más reciente de HOY para un
+  // estudiante (ver AsistenciaService.deshacerRegistroManual en el
+  // backend) -- pensado para revertir un clic equivocado en Carnets.
+  deshacerRegistroManual(estudianteId: string): Observable<{ eliminado: boolean; registro: RegistroAsistenciaDiaria | null }> {
+    return this.http.post<{ eliminado: boolean; registro: RegistroAsistenciaDiaria | null }>(`${this.baseUrl}/diaria/deshacer`, {
+      estudianteId,
+    });
+  }
+
   obtenerResumenCurso(cursoId: string, fecha?: string): Observable<ResumenCurso> {
     let params = new HttpParams();
     if (fecha) params = params.set('fecha', fecha);

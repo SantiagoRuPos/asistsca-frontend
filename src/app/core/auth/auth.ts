@@ -14,18 +14,18 @@ export interface UsuarioSesion {
 
 interface RespuestaTokens {
   accessToken: string;
-  refreshToken: string;
 }
-
-const CLAVE_REFRESH_TOKEN = 'asistsca-refresh-token';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
 
+  // El refresh token ya no pasa por aquí: viaja en una cookie httpOnly que el
+  // navegador maneja solo (no es legible ni manipulable desde JS) y que se
+  // envía automáticamente con `withCredentials: true` a /auth/login,
+  // /auth/refresh y /auth/logout. El access token sigue solo en memoria.
   private readonly accessToken = signal<string | null>(null);
-  private readonly refreshToken = signal<string | null>(this.leerRefreshTokenGuardado());
 
   readonly usuario = signal<UsuarioSesion | null>(null);
   readonly estaAutenticado = computed(() => this.accessToken() !== null);
@@ -35,17 +35,13 @@ export class AuthService {
 
   login(email: string, password: string): Observable<RespuestaTokens> {
     return this.http
-      .post<RespuestaTokens>(`${environment.apiUrl}/auth/login`, { email, password })
+      .post<RespuestaTokens>(`${environment.apiUrl}/auth/login`, { email, password }, { withCredentials: true })
       .pipe(tap((tokens) => this.guardarSesion(tokens)));
   }
 
   refrescar(): Observable<RespuestaTokens> {
-    const refreshTokenActual = this.refreshToken();
-    if (!refreshTokenActual) {
-      return throwError(() => new Error('No hay sesión activa'));
-    }
     return this.http
-      .post<RespuestaTokens>(`${environment.apiUrl}/auth/refresh`, { refreshToken: refreshTokenActual })
+      .post<RespuestaTokens>(`${environment.apiUrl}/auth/refresh`, {}, { withCredentials: true })
       .pipe(tap((tokens) => this.guardarSesion(tokens)));
   }
 
@@ -104,15 +100,12 @@ export class AuthService {
   }
 
   logout(): void {
-    const refreshTokenActual = this.refreshToken();
     this.limpiarSesion();
     this.router.navigate(['/login']);
 
-    if (refreshTokenActual) {
-      this.http
-        .post(`${environment.apiUrl}/auth/logout`, { refreshToken: refreshTokenActual })
-        .subscribe({ error: () => {} });
-    }
+    this.http
+      .post(`${environment.apiUrl}/auth/logout`, {}, { withCredentials: true })
+      .subscribe({ error: () => {} });
   }
 
   obtenerAccessToken(): string | null {
@@ -121,20 +114,12 @@ export class AuthService {
 
   private guardarSesion(tokens: RespuestaTokens): void {
     this.accessToken.set(tokens.accessToken);
-    this.refreshToken.set(tokens.refreshToken);
-    localStorage.setItem(CLAVE_REFRESH_TOKEN, tokens.refreshToken);
     this.usuario.set(this.decodificarUsuario(tokens.accessToken));
   }
 
   private limpiarSesion(): void {
     this.accessToken.set(null);
-    this.refreshToken.set(null);
     this.usuario.set(null);
-    localStorage.removeItem(CLAVE_REFRESH_TOKEN);
-  }
-
-  private leerRefreshTokenGuardado(): string | null {
-    return localStorage.getItem(CLAVE_REFRESH_TOKEN);
   }
 
   private decodificarUsuario(accessToken: string): UsuarioSesion | null {

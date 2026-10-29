@@ -98,6 +98,14 @@ export class CarnetsComponent {
   protected readonly errorAccion = signal<string | null>(null);
   protected readonly exitoAccion = signal<string | null>(null);
 
+  // (2026-09-25) "Deshacer" el último registro hecho desde esta pantalla --
+  // ej. se marcó "Entrada" al estudiante equivocado por accidente. Solo se
+  // ofrece justo después de una acción exitosa (no es un historial, es
+  // literalmente "deshacer lo que acabo de hacer"); el backend igual
+  // valida que de verdad haya algo que deshacer.
+  protected readonly ultimaAccion = signal<{ estudianteId: string; nombreEstudiante: string } | null>(null);
+  protected readonly deshaciendo = signal(false);
+
   constructor() {
     this.cargarTarjetas();
     if (this.esGestion()) {
@@ -174,6 +182,7 @@ export class CarnetsComponent {
         next: () => {
           this.accionEnCurso.set(null);
           this.exitoAccion.set(textosExito[accion]);
+          this.ultimaAccion.set({ estudianteId, nombreEstudiante });
           setTimeout(() => this.exitoAccion.set(null), 3000);
         },
         error: (error) => {
@@ -181,6 +190,27 @@ export class CarnetsComponent {
           this.errorAccion.set(error.error?.message ?? 'No se pudo registrar la asistencia.');
         },
       });
+  }
+
+  deshacerUltimaAccion(): void {
+    const ultima = this.ultimaAccion();
+    if (!ultima || this.deshaciendo()) return;
+
+    this.errorAccion.set(null);
+    this.exitoAccion.set(null);
+    this.deshaciendo.set(true);
+    this.asistenciaService.deshacerRegistroManual(ultima.estudianteId).subscribe({
+      next: () => {
+        this.deshaciendo.set(false);
+        this.ultimaAccion.set(null);
+        this.exitoAccion.set(`Se deshizo el último registro de ${ultima.nombreEstudiante}.`);
+        setTimeout(() => this.exitoAccion.set(null), 3000);
+      },
+      error: (error) => {
+        this.deshaciendo.set(false);
+        this.errorAccion.set(error.error?.message ?? 'No se pudo deshacer el registro.');
+      },
+    });
   }
 
   protected estaEnCurso(tarjeta: TarjetaNfc, accion: AccionCarnet): boolean {

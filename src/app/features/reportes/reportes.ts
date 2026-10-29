@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ReportesService } from '../../core/reportes/reportes';
+import { FormatoInforme, ReportesService } from '../../core/reportes/reportes';
 import { AcademicoService, Curso, EstudianteMatriculado } from '../../core/academico/academico';
 
 type TipoInforme = 'estudiante' | 'curso' | 'colegio';
@@ -32,6 +32,16 @@ export class ReportesComponent {
   protected readonly descargando = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly exito = signal<string | null>(null);
+
+  // (2026-09-25) Excel sigue siendo el formato completo (con el detalle día
+  // a día); PDF es el resumen de una sola página, para imprimir o mandar
+  // rápido. Excel queda como opción por defecto porque es la que ya se
+  // usaba antes de que existiera PDF.
+  protected readonly formato = signal<FormatoInforme>('xlsx');
+
+  cambiarFormato(formato: FormatoInforme): void {
+    this.formato.set(formato);
+  }
 
   protected readonly rangoValido = computed(() => {
     if (!this.fechaInicio() || !this.fechaFin()) return false;
@@ -71,10 +81,10 @@ export class ReportesComponent {
 
     const observable =
       this.tipoInforme() === 'estudiante'
-        ? this.reportesService.descargarInformeEstudiante(this.estudianteId(), this.fechaInicio(), this.fechaFin())
+        ? this.reportesService.descargarInformeEstudiante(this.estudianteId(), this.fechaInicio(), this.fechaFin(), this.formato())
         : this.tipoInforme() === 'curso'
-          ? this.reportesService.descargarInformeCurso(this.cursoId(), this.fechaInicio(), this.fechaFin())
-          : this.reportesService.descargarInformeColegio(this.fechaInicio(), this.fechaFin());
+          ? this.reportesService.descargarInformeCurso(this.cursoId(), this.fechaInicio(), this.fechaFin(), this.formato())
+          : this.reportesService.descargarInformeColegio(this.fechaInicio(), this.fechaFin(), this.formato());
 
     observable.subscribe({
       next: (informe) => {

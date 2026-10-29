@@ -118,6 +118,33 @@
     <p class="text-sm text-emerald-600 bg-emerald-50 rounded-lg px-3 py-2 mb-4">{{ exito() }}</p>
   }
 
+  <div class="mb-4">
+    <label class="block text-xs font-medium text-gray-500 mb-1.5">Formato de descarga</label>
+    <div class="inline-flex rounded-lg border border-gray-200 overflow-hidden">
+      <button
+        type="button"
+        (click)="cambiarFormato('xlsx')"
+        [class.bg-brand-teal]="formato() === 'xlsx'"
+        [class.text-white]="formato() === 'xlsx'"
+        class="px-4 py-1.5 text-sm font-medium text-gray-600"
+      >
+        Excel (completo)
+      </button>
+      <button
+        type="button"
+        (click)="cambiarFormato('pdf')"
+        [class.bg-brand-teal]="formato() === 'pdf'"
+        [class.text-white]="formato() === 'pdf'"
+        class="px-4 py-1.5 text-sm font-medium text-gray-600 border-l border-gray-200"
+      >
+        PDF (resumen)
+      </button>
+    </div>
+    @if (formato() === 'pdf') {
+      <p class="text-xs text-gray-400 mt-1.5">El PDF trae solo el resumen del período, sin el detalle día a día — para eso, descarga en Excel.</p>
+    }
+  </div>
+
   <button
     type="button"
     (click)="descargar()"
@@ -127,7 +154,7 @@
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
     </svg>
-    {{ descargando() ? 'Generando informe...' : 'Descargar informe (Excel)' }}
+    {{ descargando() ? 'Generando informe...' : (formato() === 'pdf' ? 'Descargar informe (PDF)' : 'Descargar informe (Excel)') }}
   </button>
 
 </div>

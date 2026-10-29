@@ -667,6 +667,26 @@
           <form [formGroup]="formularioEditarCarnet" (ngSubmit)="guardarCarnet()" class="flex flex-col gap-3 pb-6 border-b border-gray-100">
             <h3 class="text-sm font-semibold text-gray-700">Carnet NFC</h3>
             <p class="text-xs text-gray-400">UID actual: {{ est.tarjeta?.uidTarjeta ?? 'Sin carnet asignado' }}</p>
+            @if (mostrarBannerTarjetaDesconocida()) {
+              <div class="flex items-center justify-between gap-3 bg-brand-teal/5 border border-brand-teal/20 rounded-lg px-3 py-2.5">
+                <div class="min-w-0">
+                  <p class="text-sm text-gray-700">
+                    Tarjeta detectada: <span class="font-mono font-medium">{{ tarjetaDesconocida()!.uidTarjeta }}</span>
+                  </p>
+                  <p class="text-xs text-gray-400">hace {{ segundosDesde(tarjetaDesconocida()!.fechaEscaneo) }} s{{ tarjetaDesconocida()!.lector?.nombre ? ' · ' + tarjetaDesconocida()!.lector!.nombre : '' }}</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                  <button type="button" (click)="usarUidDetectado()" class="px-3 py-1.5 rounded-lg bg-brand-teal text-white text-xs font-medium hover:bg-brand-teal-dark">
+                    Usar este UID
+                  </button>
+                  <button type="button" (click)="descartarUidDetectado()" class="w-7 h-7 rounded-lg text-gray-400 hover:bg-gray-100 inline-flex items-center justify-center">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            }
             <div class="flex items-end gap-3 flex-wrap">
               <div class="flex-1 min-w-[10rem]">
                 <label class="block text-xs font-medium text-gray-500 mb-1">{{ est.tarjeta ? 'Nuevo UID' : 'UID del carnet' }}</label>

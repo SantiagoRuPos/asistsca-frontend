@@ -364,7 +364,14 @@ export class EstudiantesComponent {
   protected usarUidDetectado(): void {
     const tarjeta = this.tarjetaDesconocida();
     if (!tarjeta) return;
-    this.formularioTarjeta.patchValue({ uidTarjeta: tarjeta.uidTarjeta });
+    // El mismo banner se muestra en dos contextos distintos (wizard de
+    // estudiante nuevo, y el modal "Editar estudiante"), nunca los dos a la
+    // vez: se llena el formulario del que este activo en este momento.
+    if (this.estudianteEditando()) {
+      this.formularioEditarCarnet.patchValue({ uidTarjeta: tarjeta.uidTarjeta });
+    } else {
+      this.formularioTarjeta.patchValue({ uidTarjeta: tarjeta.uidTarjeta });
+    }
     this.uidDescartado = tarjeta.uidTarjeta;
   }
 
@@ -446,6 +453,14 @@ export class EstudiantesComponent {
         this.errorCarnetEdicion.set(null);
         this.errorAcudienteEdicion.set(null);
 
+        // Mismo banner de "tarjeta detectada" que ya existe en el wizard de
+        // estudiante nuevo y en Carnets: mientras este modal esta abierto,
+        // se ofrece el UID de la ultima tarjeta desconocida escaneada, por
+        // si se esta cambiando/asignando el carnet con el lector a mano.
+        this.tarjetaDesconocida.set(null);
+        this.uidDescartado = null;
+        this.iniciarPollingTarjetaDesconocida();
+
         this.formularioEditarDatos.reset({
           nombres: detalle.nombres,
           apellidos: detalle.apellidos,
@@ -477,6 +492,7 @@ export class EstudiantesComponent {
 
   cerrarEditar(): void {
     this.estudianteEditando.set(null);
+    this.detenerPollingTarjetaDesconocida();
     this.cargarResumen();
     this.cargarLista();
   }
