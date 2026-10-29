@@ -8,26 +8,43 @@ export interface InformeArchivo {
   nombreArchivo: string;
 }
 
+export type FormatoInforme = 'xlsx' | 'pdf';
+
 @Injectable({ providedIn: 'root' })
 export class ReportesService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiUrl}/reportes`;
 
-  descargarInformeEstudiante(estudianteId: string, fechaInicio: string, fechaFin: string): Observable<InformeArchivo> {
+  descargarInformeEstudiante(
+    estudianteId: string,
+    fechaInicio: string,
+    fechaFin: string,
+    formato: FormatoInforme = 'xlsx',
+  ): Observable<InformeArchivo> {
     const params = new HttpParams()
       .set('estudianteId', estudianteId)
       .set('fechaInicio', fechaInicio)
-      .set('fechaFin', fechaFin);
+      .set('fechaFin', fechaFin)
+      .set('formato', formato);
     return this.descargar(`${this.baseUrl}/asistencia/estudiante`, params);
   }
 
-  descargarInformeCurso(cursoId: string, fechaInicio: string, fechaFin: string): Observable<InformeArchivo> {
-    const params = new HttpParams().set('cursoId', cursoId).set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
+  descargarInformeCurso(
+    cursoId: string,
+    fechaInicio: string,
+    fechaFin: string,
+    formato: FormatoInforme = 'xlsx',
+  ): Observable<InformeArchivo> {
+    const params = new HttpParams()
+      .set('cursoId', cursoId)
+      .set('fechaInicio', fechaInicio)
+      .set('fechaFin', fechaFin)
+      .set('formato', formato);
     return this.descargar(`${this.baseUrl}/asistencia/curso`, params);
   }
 
-  descargarInformeColegio(fechaInicio: string, fechaFin: string): Observable<InformeArchivo> {
-    const params = new HttpParams().set('fechaInicio', fechaInicio).set('fechaFin', fechaFin);
+  descargarInformeColegio(fechaInicio: string, fechaFin: string, formato: FormatoInforme = 'xlsx'): Observable<InformeArchivo> {
+    const params = new HttpParams().set('fechaInicio', fechaInicio).set('fechaFin', fechaFin).set('formato', formato);
     return this.descargar(`${this.baseUrl}/asistencia/colegio`, params);
   }
 
